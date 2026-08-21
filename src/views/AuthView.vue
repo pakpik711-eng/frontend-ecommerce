@@ -20,6 +20,7 @@
             type="text"
             id="name"
             placeholder="Enter your name"
+            required
           />
         </div>
 
@@ -30,6 +31,7 @@
             type="email"
             id="email"
             placeholder="Enter your email"
+            required
           />
         </div>
 
