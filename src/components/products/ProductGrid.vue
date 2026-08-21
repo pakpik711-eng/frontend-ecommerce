@@ -1,13 +1,25 @@
 <template>
-  
+
+<div>
+<ProductCard  
+v-for="product in products"
+:key="product.id"
+:product="product"
+/>
+</div>
 </template>
 
-<script>
-export default {
+<script setup>
+import ProductCard from './ProductCard.vue';
+defineProps({
+    products:{
+        type:Array,
+        required:true
+    }
+})
 
-}
 </script>
 
 <style>
 
-</style>
+</style> 
