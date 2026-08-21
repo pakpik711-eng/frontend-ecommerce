@@ -1,13 +1,7 @@
 <template>
   <h1>List Of Products</h1>
-  
-
 </template>
 
-<script setup>
+<script setup></script>
 
-</script>
-
-<style>
-
-</style>
+<style></style>
