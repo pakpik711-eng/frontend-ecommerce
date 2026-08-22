@@ -6,8 +6,8 @@ export async function apiRequest(url, options = {}) {
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      ...options.headers
-    }
+      ...options.headers,
+    },
   });
   if (!response.ok) {
     throw new Error(`API Error: ${response.status}`);
