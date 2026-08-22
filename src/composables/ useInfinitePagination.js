@@ -1,67 +1,28 @@
-import { onMounted, onUnmounted, ref } from "vue"
+import { onMounted, onUnmounted, ref } from "vue";
 
-export function useInfinitePagination(fetFunction,size=10){
-    const data=ref([])
-    const page=ref(0)
-    const loading=ref(false)
-    const hasMore = ref(true)
-    const error = ref(null)
-    const scrollTrigger = ref(null)
-    let observer = null
+export function useInfinitePagination(loadFunction){
+    const scrollTrigger=ref(null);
 
-    async function loadMore(){
-        if (loading.value || !hasMore.value) {
-      return;
-    }
-
-     loading.value=true;
-     error.value=null
-         try{
-            const response=await fetFunction(page.value,size);
-            const newData=response.content;
-            data.value.push(...newData);
-
-            if(page.value>=response.totalPages-1){
-                hasMore.value=false;
-            }else{
-                page.value++;
-            }
-         }
-         catch(err){
-            error.value=err;
-         }
-         finally{
-            loading.value=true;
-         }
-    }
-
+    let observer=null;
     function setupObserver(){
         observer=new IntersectionObserver((entries)=>{
             if(entries[0].isIntersecting){
-                loadMore();
+                loadFunction()
             }
-        },
-        {
-        rootMargin: "200px"
-      }
-    )
-    if(scrollTrigger.value){
-        observer.observe(scrollTrigger.value);
+        },{
+            rootMargin:"200px"
+        })
+        if(scrollTrigger.value){
+            observer.observe(scrollTrigger.value)
+        }
     }
-    }
-
-    onMounted(async ()=>{
-        await loadMore();
+    onMounted(()=>{
         setupObserver();
     });
-
     onUnmounted(()=>{
-        if(observer){
-            observer.disconnect()
-        }
+        observer?.disconnect();
     })
-
-    return {
-        data,page,loading,hasMore,error,scrollTrigger,loadMore
-    }
+    return {scrollTrigger};
 }
+
+
