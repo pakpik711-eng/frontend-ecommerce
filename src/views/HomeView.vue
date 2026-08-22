@@ -12,11 +12,11 @@ import { useProductStore } from "@/stores/productStore";
 import { onMounted } from "vue";
 
 const productStore = useProductStore();
-const {scrollTrigger} = useInfinitePagination(productStore.loadMore);
+const { scrollTrigger } = useInfinitePagination(productStore.loadMore);
 
 onMounted(() => {
   productStore.loadMore();
 });
-</script>›
+</script>
+›
 <style></style>
-
