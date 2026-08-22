@@ -32,7 +32,7 @@
 <script setup>
 import SearchBar from "./SearchBar.vue";
 import BaseButton from "./BaseButton.vue";
-import { useAuthStore } from "../../store/authStore.js";
+import { useAuthStore } from "../../stores/authStore.js";
 
 const authStore = useAuthStore();
 </script>

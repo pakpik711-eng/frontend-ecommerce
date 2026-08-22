@@ -3,7 +3,7 @@ import HomeView from "@/views/HomeView.vue";
 import LoginView from "@/views/LoginView.vue";
 import SignupView from "@/views/SignupView.vue";
 import ProfileView from "@/views/ProfileView.vue";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/stores/authStore";
 
 const routes = [
   { path: "/", name: "Home", component: HomeView },

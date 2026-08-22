@@ -56,7 +56,7 @@
 <script setup>
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/stores/authStore";
 
 import BaseButton from "@/components/common/BaseButton.vue";
 import GoogleAuthBtn from "@/components/auth/GoogleAuthBtn.vue";
@@ -95,7 +95,7 @@ const handleSignup = () => {
 
   authStore.login({
     email: email.value,
-    password
+    password,
   });
   router.push("/");
 };
