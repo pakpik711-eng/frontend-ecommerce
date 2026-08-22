@@ -34,14 +34,15 @@ export const useProductStore=defineStore('product',()=>{
             error.value=err;
         }finally{
             loading.value=false;
-        }
-        function resetProduct(){
+        } 
+    }
+    function resetProduct(){
             products.value=[];
             page.value=0;
             hasMore.value=true;
             error.value = null;
         }
-    }
+
      return {products,currentProduct,page,size,loading,hasMore,error,loadMore,resetProduct}
 })
 

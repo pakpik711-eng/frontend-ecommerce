@@ -1,10 +1,39 @@
 <template>
   <div class="search-box">
-    <input type="text" placeholder="Search..." class="search-input" />
-    <button class="search-btn">Search</button>
+    <input v-model="searchText" type="text" placeholder="Search..." class="search-input"  @input="handleInput" />
+    <button class="search-btn"  @click="performSearch">Search</button>
   </div>
 </template>
 
+<script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+
+
+const searchText=ref("")
+const router=useRouter()
+let timer = null;
+
+function handleInput(){
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    performSearch();
+  }, 500);
+}
+function performSearch(){
+  const query=searchText.value.trim();
+
+  if (!query) {
+    return;
+  }
+  router.push({
+    path:'/search',
+      query: {
+      q: query
+    }
+  })
+}
+</script>
 <style scoped>
 .search-box {
   display: flex;
