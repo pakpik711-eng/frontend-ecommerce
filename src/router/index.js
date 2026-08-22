@@ -4,11 +4,17 @@ import LoginView from "@/views/LoginView.vue";
 import SignupView from "@/views/SignupView.vue";
 import ProfileView from "@/views/ProfileView.vue";
 import { useAuthStore } from "@/stores/authStore";
+import SearchResultsView from "@/views/SearchResultsView.vue";
 
 const routes = [
   { path: "/", name: "Home", component: HomeView },
   { path: "/login", name: "Login", component: LoginView },
   { path: "/signup", name: "Signup", component: SignupView },
+  {
+    path: "/search",
+    name: "Search",
+    component: SearchResultsView
+  },
   {
     path: "/profile",
     name: "Profile",
