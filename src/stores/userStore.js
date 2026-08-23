@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { userApi } from "@/services/userApi";
 
 export const useUserStore = defineStore("user", () => {
@@ -8,6 +8,12 @@ export const useUserStore = defineStore("user", () => {
   const orders = ref([]);
   const isLoading = ref(false);
   const error = ref(null);
+
+  const userInitial = computed(() => {
+    return profile.value?.name
+      ? profile.value.name.charAt(0).toUpperCase()
+      : "U";
+  });
 
   async function loadProfile() {
     isLoading.value = true;
@@ -101,6 +107,7 @@ export const useUserStore = defineStore("user", () => {
 
   return {
     profile,
+    userInitial,
     addresses,
     orders,
     isLoading,

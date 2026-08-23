@@ -18,7 +18,7 @@
         title="User Profile"
       >
         <div class="avatar-circle">
-          {{ authStore.userInitial }}
+          {{ userStore.userInitial }}
         </div>
       </router-link>
 
@@ -33,8 +33,10 @@
 import SearchBar from "./SearchBar.vue";
 import BaseButton from "./BaseButton.vue";
 import { useAuthStore } from "../../stores/authStore.js";
+import { useUserStore } from "@/stores/userStore.js";
 
 const authStore = useAuthStore();
+const userStore = useUserStore();
 </script>
 
 <style scoped>
