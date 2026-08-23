@@ -23,32 +23,24 @@ export const useProductStore = defineStore("product", () => {
       const response = await getProducts(page.value, size.value);
       products.value.push(...response.content);
 
-      if (page.value >= response.totalPages - 1) {
-        hasMore.value = false;
-      } else {
-        page.value++;
-      }
-    } catch (err) {
-      error.value = err;
-    } finally {
-      loading.value = false;
+            if(page.value>=response.totalPages-1){
+                hasMore.value=false;
+            }else{
+                page.value++;
+            }
+        } catch (err) {
+            error.value=err;
+        }finally{
+            loading.value=false;
+        } 
     }
-  }
-  function resetProduct() {
-    products.value = [];
-    page.value = 0;
-    hasMore.value = true;
-    error.value = null;
-  }
-  return {
-    products,
-    currentProduct,
-    page,
-    size,
-    loading,
-    hasMore,
-    error,
-    loadMore,
-    resetProduct,
-  };
-});
+    function resetProduct(){
+            products.value=[];
+            page.value=0;
+            hasMore.value=true;
+            error.value = null;
+        }
+
+     return {products,currentProduct,page,size,loading,hasMore,error,loadMore,resetProduct}
+})
+

@@ -4,6 +4,7 @@ import LoginView from "@/views/LoginView.vue";
 import SignupView from "@/views/SignupView.vue";
 import ProfileView from "@/views/ProfileView.vue";
 import { useAuthStore } from "@/stores/authStore";
+import SearchResultsView from "@/views/SearchResultsView.vue";
 
 const routes = [
   { path: "/", name: "Home", component: HomeView },
@@ -18,6 +19,11 @@ const routes = [
     name: "Signup",
     component: SignupView,
     meta: { guestOnly: true },
+  },
+  {
+    path: "/search",
+    name: "Search",
+    component: SearchResultsView
   },
   {
     path: "/profile",
