@@ -23,7 +23,7 @@ export const useCartStore=defineStore('cart',()=>{
         error.value="Failed to Load cart"
       }
       finally{
-        loading=false;
+        loading.value=false;
       }
     }
 

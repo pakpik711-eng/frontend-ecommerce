@@ -5,8 +5,9 @@ import LoginView from "@/views/LoginView.vue";
 import SignupView from "@/views/SignupView.vue";
 import ProfileView from "@/views/ProfileView.vue";
 import SearchResultsView from "@/views/SearchResultsView.vue";
-
-import { useAuthStore } from "@/stores/authStore";
+import CartView from "@/views/CartView.vue";
+import CheckoutView from "@/views/CheckoutView.vue";
+import OrderSuccessView from "@/views/OrderSuccessView.vue";
 
 const routes = [
   {
@@ -32,7 +33,21 @@ const routes = [
   {
     path: "/search",
     name: "Search",
-    component: SearchResultsView,
+    component: SearchResultsView
+  }, {
+    path: "/cart",
+    name: "Cart",
+    component: CartView,
+  },
+   {
+    path: "/checkout",
+    name: "Checkout",
+    component: CheckoutView,
+  },
+  {
+    path: "/order-success",
+    name: "OrderSuccess",
+    component: OrderSuccessView,
   },
 
   {
@@ -41,6 +56,7 @@ const routes = [
     component: ProfileView,
     meta: { requiresAuth: true },
   },
+
 ];
 
 const router = createRouter({
