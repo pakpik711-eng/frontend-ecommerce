@@ -1,13 +1,16 @@
 <template>
   <Header />
   <main>
-    <p v-if="cartStore.cartItems.length === 0"></p>
+    <p v-if="cartStore.cartItems.length === 0">No carts added</p>
 
     <template v-else>
       <CartItem
         v-for="item in cartStore.cartItems"
         :key="item.cartItemId"
         :item="item"
+        @increase="cartStore.increaseQuantity"
+        @decrease="cartStore.decreaseQuantity"
+        @remove="cartStore.removeItem"
       />
       <CartSummary :total="cartStore.totalPrice" />
     </template>
