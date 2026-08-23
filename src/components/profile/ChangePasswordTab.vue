@@ -16,6 +16,8 @@
         placeholder="Enter new password"
       />
 
+      <PasswordRules :rules="rules" />
+
       <PasswordInput
         id="confirmNewPassword"
         label="Confirm New Password"
@@ -43,7 +45,7 @@
         class="save-btn"
         :disabled="
           !currentPassword ||
-          !newPassword ||
+          !isValid ||
           newPassword !== confirmNewPassword ||
           userStore.isLoading
         "
@@ -55,8 +57,10 @@
 <script setup>
 import { ref } from "vue";
 import { useUserStore } from "@/stores/userStore";
+import { usePasswordValidation } from "@/composables/usePasswordValidation";
 import BaseButton from "@/components/common/BaseButton.vue";
 import PasswordInput from "@/components/auth/PasswordInput.vue";
+import PasswordRules from "@/components/auth/PasswordRules.vue";
 
 const userStore = useUserStore();
 
@@ -65,6 +69,8 @@ const newPassword = ref("");
 const confirmNewPassword = ref("");
 const apiError = ref("");
 const successMsg = ref("");
+
+const { rules, isValid } = usePasswordValidation(newPassword);
 
 const handleChangePassword = async () => {
   apiError.value = "";

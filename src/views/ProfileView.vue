@@ -8,7 +8,7 @@
           :key="tab.id"
           class="tab-btn"
           :class="{ active: currentTab === tab.id }"
-          @click="currentTab = tab.id"
+          @click="selectTab(tab.id)"
         >
           {{ tab.label }}
         </button>
@@ -23,9 +23,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
-import { useRouter } from "vue-router";
+import { computed, onMounted, watch, ref } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
+import { useUserStore } from "@/stores/userStore";
 
 import UserDetailsTab from "@/components/profile/UserDetailsTab.vue";
 import ChangePasswordTab from "@/components/profile/ChangePasswordTab.vue";
@@ -33,9 +34,9 @@ import ManageAddressesTab from "@/components/profile/ManageAddressesTab.vue";
 import OrderHistoryTab from "@/components/profile/OrderHistoryTab.vue";
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
-
-const currentTab = ref("details");
+const userStore = useUserStore();
 
 const tabs = [
   { id: "details", label: "Profile Details" },
@@ -51,7 +52,31 @@ const tabComponents = {
   password: ChangePasswordTab,
 };
 
+const currentTab = ref(
+  tabComponents[route.query.tab] ? route.query.tab : "details",
+);
+
+const selectTab = (tabId) => {
+  currentTab.value = tabId;
+  router.push({ query: { ...route.query, tab: tabId } });
+};
+
+watch(
+  () => route.query.tab,
+  (newTab) => {
+    if (newTab && tabComponents[newTab]) {
+      currentTab.value = newTab;
+    } else {
+      currentTab.value = "details";
+    }
+  },
+);
+
 const activeComponent = computed(() => tabComponents[currentTab.value]);
+
+onMounted(() => {
+  userStore.loadProfile();
+});
 
 const handleLogout = () => {
   authStore.logout?.();

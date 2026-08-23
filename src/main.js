@@ -10,11 +10,12 @@ const app = createApp(App);
 const pinia = createPinia();
 
 app.use(pinia);
-app.use(router);
 
 const authStore = useAuthStore(pinia);
 
 await authStore.initializeAuth();
+
+app.use(router);
 
 await router.isReady();
 
