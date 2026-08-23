@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { useAuthStore } from "@/stores/authStore";
 
 import HomeView from "@/views/HomeView.vue";
 import LoginView from "@/views/LoginView.vue";
@@ -33,13 +34,14 @@ const routes = [
   {
     path: "/search",
     name: "Search",
-    component: SearchResultsView
-  }, {
+    component: SearchResultsView,
+  },
+  {
     path: "/cart",
     name: "Cart",
     component: CartView,
   },
-   {
+  {
     path: "/checkout",
     name: "Checkout",
     component: CheckoutView,
@@ -56,7 +58,6 @@ const routes = [
     component: ProfileView,
     meta: { requiresAuth: true },
   },
-
 ];
 
 const router = createRouter({
