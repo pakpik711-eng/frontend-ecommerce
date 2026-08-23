@@ -6,7 +6,7 @@
 
 <script setup>
 import ProductGrid from "@/components/products/ProductGrid.vue";
-import { useInfinitePagination } from "@/composables/useInfinitePagination";
+import { useInfinitePagination } from "@/composables/ useInfinitePagination";
 
 import { useProductStore } from "@/stores/productStore";
 import { onMounted } from "vue";
@@ -18,5 +18,4 @@ onMounted(() => {
   productStore.loadMore();
 });
 </script>
-›
 <style></style>

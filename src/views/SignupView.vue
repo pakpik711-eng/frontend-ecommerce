@@ -95,7 +95,7 @@ const handleSignup = () => {
 
   authStore.login({
     email: email.value,
-    password,
+    password: password.value,
   });
   router.push("/");
 };

@@ -59,8 +59,8 @@ const handleGoogleAuth = () => {
 
 const handleLogin = () => {
   authStore.login({
-    name: email.value.split("@")[0],
     email: email.value,
+    password: password.value,
   });
   router.push("/");
 };
