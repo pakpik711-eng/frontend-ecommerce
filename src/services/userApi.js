@@ -1,7 +1,7 @@
 let mockUser = {
   name: "Ravindran Logasanjeev",
   email: "ravindran@example.com",
-  phone: "+91 98765 43210",
+  phone: "9876543210",
 };
 
 let mockAddresses = [

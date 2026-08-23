@@ -13,7 +13,7 @@ export const useAuthStore = defineStore("auth", () => {
 
       isAuthenticated.value = true;
       const userStore = useUserStore();
-      await userStore.loadProfile();
+      userStore.loadProfile();
       return true;
     } catch (error) {
       isAuthenticated.value = false;
