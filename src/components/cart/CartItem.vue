@@ -12,7 +12,7 @@
        <span>{{ item.quantity }}</span>
        <button :disabled="item.availableStock<=item.quantity" @click="increaseQuantity">+</button>
     </div>
-        <p>  Total: ₹{{ item.totalPrice.toLocaleString("en-IN") }}</p>
+        <p>Total: ₹{{ item.totalPrice.toLocaleString("en-IN") }}</p>
         <p v-if="item.quantity>=item.availableStock"> Only {{ item.availableStock }} available</p>
         <button @click="removeItem">Remove</button>
 </div>

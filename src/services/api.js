@@ -9,8 +9,12 @@ export async function apiRequest(url, options = {}) {
       ...options.headers,
     },
   });
+   const data = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error(`API Error: ${response.status}`);
+    const error = new Error(data?.message || `API Error: ${response.status}`);
+    error.status = response.status;
+    error.response = data;
+    throw error;
   }
-  return response.json();
+  return data;
 }
