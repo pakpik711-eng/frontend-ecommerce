@@ -7,8 +7,18 @@ import { useAuthStore } from "@/stores/authStore";
 
 const routes = [
   { path: "/", name: "Home", component: HomeView },
-  { path: "/login", name: "Login", component: LoginView },
-  { path: "/signup", name: "Signup", component: SignupView },
+  {
+    path: "/login",
+    name: "Login",
+    component: LoginView,
+    meta: { guestOnly: true },
+  },
+  {
+    path: "/signup",
+    name: "Signup",
+    component: SignupView,
+    meta: { guestOnly: true },
+  },
   {
     path: "/profile",
     name: "Profile",
@@ -26,6 +36,8 @@ router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next({ name: "Login" });
+  } else if (to.meta.guestOnly && authStore.isAuthenticated) {
+    next({ name: "Home" });
   } else {
     next();
   }
