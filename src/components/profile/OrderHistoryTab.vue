@@ -2,7 +2,9 @@
   <div class="tab-content">
     <h3>Order History</h3>
 
-    <div v-if="userStore.isLoading" class="empty-state">Loading orders...</div>
+    <div v-if="orderStore.isLoading && orders.length === 0" class="empty-state">
+      Loading orders...
+    </div>
 
     <div v-else-if="orders.length === 0" class="empty-state">
       No orders placed yet.
@@ -15,9 +17,21 @@
             <span class="order-id">Order #{{ order.id }}</span>
             <span class="order-date">{{ order.date }}</span>
           </div>
-          <span class="order-status" :class="order.status.toLowerCase()">
-            {{ order.status }}
-          </span>
+          <div class="header-right">
+            <span class="order-status" :class="order.status.toLowerCase()">
+              {{ order.status }}
+            </span>
+            <button
+              v-if="
+                order.status !== 'Delivered' && order.status !== 'Cancelled'
+              "
+              class="cancel-btn"
+              :disabled="orderStore.isLoading"
+              @click="handleCancel(order.id)"
+            >
+              Cancel Order
+            </button>
+          </div>
         </div>
 
         <div class="order-body">
@@ -39,14 +53,24 @@
 <script setup>
 import { onMounted } from "vue";
 import { storeToRefs } from "pinia";
-import { useUserStore } from "@/stores/userStore";
+import { useOrderStore } from "@/stores/orderStore";
 
-const userStore = useUserStore();
-const { orders } = storeToRefs(userStore);
+const orderStore = useOrderStore();
+const { orders } = storeToRefs(orderStore);
 
 onMounted(() => {
-  userStore.loadOrders();
+  orderStore.loadOrders();
 });
+
+const handleCancel = async (id) => {
+  if (confirm("Are you sure you want to cancel this order?")) {
+    try {
+      await orderStore.cancelOrder(id);
+    } catch (err) {
+      alert(err.message || "Failed to cancel order");
+    }
+  }
+};
 </script>
 
 <style scoped>
@@ -84,6 +108,12 @@ h3 {
   border-bottom: 1px solid #e5e7eb;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 .order-id {
   font-weight: 600;
   font-size: 0.875rem;
@@ -110,6 +140,32 @@ h3 {
 .order-status.processing {
   background-color: #fef3c7;
   color: #b45309;
+}
+
+.order-status.cancelled {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.cancel-btn {
+  background: none;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cancel-btn:hover {
+  background-color: #fef2f2;
+}
+
+.cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .order-body {
