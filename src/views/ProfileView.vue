@@ -23,10 +23,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
-import { useUserStore } from "@/stores/userStore";
 
 import UserDetailsTab from "@/components/profile/UserDetailsTab.vue";
 import ChangePasswordTab from "@/components/profile/ChangePasswordTab.vue";
@@ -35,7 +34,6 @@ import OrderHistoryTab from "@/components/profile/OrderHistoryTab.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();
-const userStore = useUserStore();
 
 const currentTab = ref("details");
 
@@ -54,10 +52,6 @@ const tabComponents = {
 };
 
 const activeComponent = computed(() => tabComponents[currentTab.value]);
-
-onMounted(() => {
-  userStore.loadProfile();
-});
 
 const handleLogout = () => {
   authStore.logout?.();

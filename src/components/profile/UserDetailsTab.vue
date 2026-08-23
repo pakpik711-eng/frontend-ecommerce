@@ -63,8 +63,6 @@ onMounted(async () => {
   populateForm();
 });
 
-watch(() => userStore.profile, populateForm, { deep: true });
-
 const handleSave = async () => {
   try {
     await userStore.updateProfile({ ...form });
