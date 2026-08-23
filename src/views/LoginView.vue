@@ -26,6 +26,8 @@
           placeholder="Enter password"
         />
 
+        <span v-if="loginError" class="error-msg">{{ loginError }}</span>
+
         <BaseButton text="Log In" class="submit-btn" />
       </form>
 
@@ -57,12 +59,19 @@ const handleGoogleAuth = () => {
   console.log("Initiating Google Auth...");
 };
 
-const handleLogin = () => {
-  authStore.login({
-    email: email.value,
-    password: password.value,
-  });
-  router.push("/");
+const loginError = ref("");
+
+const handleLogin = async () => {
+  loginError.value = "";
+  try {
+    await authStore.login({
+      email: email.value,
+      password: password.value,
+    });
+    router.push("/");
+  } catch (err) {
+    loginError.value = err.message || "Failed to log in";
+  }
 };
 </script>
 
@@ -121,6 +130,14 @@ label {
 .submit-btn {
   width: 100%;
   margin-top: 0.5rem;
+}
+
+.error-msg {
+  font-size: 0.78rem;
+  color: #dc2626;
+  margin-top: -0.25rem;
+  margin-bottom: 0.5rem;
+  display: block;
 }
 
 .toggle-text {

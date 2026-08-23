@@ -1,48 +1,50 @@
 import { defineStore } from "pinia";
-import { ref, computed } from "vue";
-import { loginUser } from "../services/authApi";
+import { ref } from "vue";
+import { loginUser, getCurrentUser, logoutUser } from "@/services/authApi";
+import { useUserStore } from "./userStore";
 
 export const useAuthStore = defineStore("auth", () => {
-  const storedUser = localStorage.getItem("user");
+  const isAuthenticated = ref(false);
+  const authInitialized = ref(false);
 
-  const user = ref(storedUser ? JSON.parse(storedUser) : null);
+  async function login(credentials) {
+    try {
+      await loginUser(credentials);
 
-  const getCookie = (name) => {
-    const cookies = document.cookie.split("; ");
-
-    const cookie = cookies.find((cookie) => cookie.startsWith(`${name}=`));
-
-    return cookie ? cookie.split("=")[1] : null;
-  };
-
-  const isAuthenticated = ref(!!getCookie("accessToken"));
-
-  const userInitial = computed(() => {
-    return user.value?.name ? user.value.name.charAt(0).toUpperCase() : "U";
-  });
-
-  function login(userCredentials) {
-    const res = loginUser({ ...userCredentials });
-    if (res) {
-      localStorage.setItem("user", JSON.stringify(res));
       isAuthenticated.value = true;
-      user.value = res;
-      console.log("logged in");
-    } else console.log("invalid credentials");
+      const userStore = useUserStore();
+      userStore.loadProfile();
+      return true;
+    } catch (error) {
+      isAuthenticated.value = false;
+      throw error;
+    }
+  }
+
+  async function initializeAuth() {
+    try {
+      await getCurrentUser();
+      isAuthenticated.value = true;
+
+      const userStore = useUserStore();
+      await userStore.loadProfile();
+    } catch {
+      isAuthenticated.value = false;
+    } finally {
+      authInitialized.value = true;
+    }
   }
 
   function logout() {
-    user.value = null;
+    logoutUser();
     isAuthenticated.value = false;
-    document.cookie = "accessToken=; Path=/; Max-Age=0";
-    localStorage.removeItem("user");
   }
 
   return {
-    user,
     isAuthenticated,
-    userInitial,
+    authInitialized,
     login,
     logout,
+    initializeAuth,
   };
 });

@@ -38,10 +38,12 @@
           Passwords do not match
         </span>
 
+        <span v-if="signupError" class="error-msg">{{ signupError }}</span>
+
         <BaseButton
           text="Sign Up"
           class="submit-btn"
-          :disabled="!isPasswordValid || !isPasswordMatch"
+          :disabled="!isValid || !isPasswordMatch"
         />
       </form>
 
@@ -57,6 +59,7 @@
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
+import { usePasswordValidation } from "@/composables/usePasswordValidation";
 
 import BaseButton from "@/components/common/BaseButton.vue";
 import GoogleAuthBtn from "@/components/auth/GoogleAuthBtn.vue";
@@ -71,17 +74,8 @@ const email = ref("");
 const password = ref("");
 const confirmPassword = ref("");
 
-const rules = computed(() => ({
-  minLength: password.value.length > 8,
-  hasUpper: /[A-Z]/.test(password.value),
-  hasLower: /[a-z]/.test(password.value),
-  hasNumber: /[0-9]/.test(password.value),
-  hasSpecial: /[!@#$%^&*(),.?":{}|<>]/.test(password.value),
-}));
+const { rules, isValid } = usePasswordValidation(password);
 
-const isPasswordValid = computed(() =>
-  Object.values(rules.value).every(Boolean),
-);
 const isPasswordMatch = computed(
   () => password.value === confirmPassword.value,
 );
@@ -90,14 +84,21 @@ const handleGoogleAuth = () => {
   console.log("Initiating Google Auth...");
 };
 
-const handleSignup = () => {
-  if (!isPasswordValid.value || !isPasswordMatch.value) return;
+const signupError = ref("");
 
-  authStore.login({
-    email: email.value,
-    password: password.value,
-  });
-  router.push("/");
+const handleSignup = async () => {
+  if (!isValid.value || !isPasswordMatch.value) return;
+
+  signupError.value = "";
+  try {
+    await authStore.login({
+      email: email.value,
+      password: password.value,
+    });
+    router.push("/");
+  } catch (err) {
+    signupError.value = err.message || "Failed to sign up";
+  }
 };
 </script>
 

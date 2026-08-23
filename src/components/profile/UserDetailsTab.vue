@@ -16,27 +16,28 @@
         <input id="profileEmail" v-model="form.email" type="email" required />
       </div>
 
-      <div class="form-group">
-        <label for="profilePhone">Phone Number</label>
-        <input
-          id="profilePhone"
-          v-model="form.phone"
-          type="tel"
-          placeholder="+1 (555) 000-0000"
-        />
-      </div>
+      <input
+        id="profilePhone"
+        v-model="form.phone"
+        type="tel"
+        placeholder="9876543210"
+      />
+
+      <span v-if="form.phone && !isPhoneValid" class="error-msg">
+        Enter a valid 10-digit phone number
+      </span>
 
       <BaseButton
         :text="userStore.isLoading ? 'Saving...' : 'Save Changes'"
         class="save-btn"
-        :disabled="userStore.isLoading"
+        :disabled="!isPhoneValid || userStore.isLoading || !isDirty"
       />
     </form>
   </div>
 </template>
 
 <script setup>
-import { reactive, onMounted, watch } from "vue";
+import { reactive, computed, onMounted } from "vue";
 import { useUserStore } from "@/stores/userStore";
 import BaseButton from "@/components/common/BaseButton.vue";
 
@@ -63,7 +64,15 @@ onMounted(async () => {
   populateForm();
 });
 
-watch(() => userStore.profile, populateForm, { deep: true });
+const isDirty = computed(() => {
+  if (!userStore.profile) return false;
+
+  return (
+    form.name.trim() !== (userStore.profile.name || "") ||
+    form.email.trim() !== (userStore.profile.email || "") ||
+    form.phone.trim() !== (userStore.profile.phone || "")
+  );
+});
 
 const handleSave = async () => {
   try {
@@ -73,6 +82,12 @@ const handleSave = async () => {
     alert(err || "Failed to update profile details.");
   }
 };
+
+const phoneRegex = /^[6-9]\d{9}$/;
+
+const isPhoneValid = computed(() => {
+  return phoneRegex.test(form.phone);
+});
 </script>
 
 <style scoped>
@@ -121,5 +136,22 @@ input:focus {
 .save-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.error-msg {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  color: #dc2626;
+}
+
+.input-error {
+  border-color: #dc2626;
+}
+
+.input-error:focus {
+  border-color: #dc2626;
+  outline: 2px solid rgba(220, 38, 38, 0.1);
 }
 </style>
