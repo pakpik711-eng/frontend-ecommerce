@@ -32,7 +32,7 @@ export async function logoutUser() {
 
 export async function testAuth() {
   try {
-    console.log(await apiRequest(AUTH_URL, "/test/user"));
+    await apiRequest(AUTH_URL, "/test/user");
     return true;
   } catch (err) {
     if (err.response?.status === 401) {
