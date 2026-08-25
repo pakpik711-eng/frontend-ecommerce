@@ -49,14 +49,11 @@ const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const userApi = {
   async fetchProfile() {
-    await testAuth();
-    // const hasToken = document.cookie
-    //   .split("; ")
-    //   .some((cookie) => cookie.startsWith("accessToken="));
+    const authenticated = await testAuth();
 
-    // if (!hasToken) {
-    //   throw new Error("Not authenticated");
-    // }
+    if (!authenticated) {
+      return null;
+    }
 
     return { ...mockUser };
   },
