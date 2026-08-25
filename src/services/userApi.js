@@ -1,3 +1,7 @@
+import { testAuth } from "./authApi";
+
+const USER_URL = "http://http://10.17.48.87:8082";
+
 let mockUser = {
   name: "Ravindran Logasanjeev",
   email: "ravindran@example.com",
@@ -45,9 +49,28 @@ const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const userApi = {
   async fetchProfile() {
-    await delay();
+    await testAuth();
+    // const hasToken = document.cookie
+    //   .split("; ")
+    //   .some((cookie) => cookie.startsWith("accessToken="));
+
+    // if (!hasToken) {
+    //   throw new Error("Not authenticated");
+    // }
+
     return { ...mockUser };
   },
+
+  // async fetchAddresses() {
+  //   return await apiRequest(USER_URL, `/api/user/${}/addresses`, {
+  //     method: "POST",
+  //     body: {
+  //       email: credentials.email,
+  //       password: credentials.password,
+  //       role: "USER",
+  //     },
+  //   });
+  // },
 
   async updateProfile(userData) {
     await delay();

@@ -54,12 +54,11 @@ const authStore = useAuthStore();
 
 const email = ref("");
 const password = ref("");
+const loginError = ref("");
 
 const handleGoogleAuth = () => {
-  console.log("Initiating Google Auth...");
+  authStore.loginWithGoogle();
 };
-
-const loginError = ref("");
 
 const handleLogin = async () => {
   loginError.value = "";

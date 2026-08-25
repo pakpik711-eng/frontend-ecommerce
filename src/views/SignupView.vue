@@ -38,12 +38,14 @@
           Passwords do not match
         </span>
 
-        <span v-if="signupError" class="error-msg">{{ signupError }}</span>
+        <span v-if="authStore.error" class="error-msg">{{
+          authStore.error
+        }}</span>
 
         <BaseButton
-          text="Sign Up"
+          :text="authStore.isLoading ? 'Signing up...' : 'Sign Up'"
           class="submit-btn"
-          :disabled="!isValid || !isPasswordMatch"
+          :disabled="!isValid || !isPasswordMatch || authStore.isLoading"
         />
       </form>
 
@@ -81,24 +83,18 @@ const isPasswordMatch = computed(
 );
 
 const handleGoogleAuth = () => {
-  console.log("Initiating Google Auth...");
+  authStore.loginWithGoogle();
 };
-
-const signupError = ref("");
 
 const handleSignup = async () => {
   if (!isValid.value || !isPasswordMatch.value) return;
 
-  signupError.value = "";
-  try {
-    await authStore.login({
-      email: email.value,
-      password: password.value,
-    });
-    router.push("/");
-  } catch (err) {
-    signupError.value = err.message || "Failed to sign up";
-  }
+  await authStore.register({
+    email: email.value,
+    password: password.value,
+  });
+
+  router.push("/");
 };
 </script>
 

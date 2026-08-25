@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { userApi } from "@/services/userApi";
+import { useAuthStore } from "./authStore";
 
 export const useUserStore = defineStore("user", () => {
   const profile = ref(null);
@@ -22,6 +23,8 @@ export const useUserStore = defineStore("user", () => {
       profile.value = await userApi.fetchProfile();
     } catch (err) {
       error.value = err.message || "Failed to load profile";
+      const authStore = useAuthStore();
+      authStore.isAuthenticated = false;
     } finally {
       isLoading.value = false;
     }
@@ -121,5 +124,3 @@ export const useUserStore = defineStore("user", () => {
     loadOrders,
   };
 });
-
-

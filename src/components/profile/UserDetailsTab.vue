@@ -16,12 +16,15 @@
         <input id="profileEmail" v-model="form.email" type="email" required />
       </div>
 
-      <input
-        id="profilePhone"
-        v-model="form.phone"
-        type="tel"
-        placeholder="9876543210"
-      />
+      <div class="form-group">
+        <label for="profilePhone">Phone Number</label>
+        <input
+          id="profilePhone"
+          v-model="form.phone"
+          type="tel"
+          placeholder="9876543210"
+        />
+      </div>
 
       <span v-if="form.phone && !isPhoneValid" class="error-msg">
         Enter a valid 10-digit phone number
