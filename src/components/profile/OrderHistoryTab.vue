@@ -35,9 +35,37 @@
         </div>
 
         <div class="order-body">
-          <div v-for="(item, idx) in order.items" :key="idx" class="order-item">
-            <span>{{ item.name }} (x{{ item.qty }})</span>
-            <span>${{ item.price.toFixed(2) }}</span>
+          <div
+            v-for="(item, idx) in order.items"
+            :key="idx"
+            class="order-item-wrapper"
+          >
+            <router-link
+              :to="`/product/details/${item.productId}/${item.variantId}?m_id=${item.merchantId}`"
+              class="order-item-link"
+            >
+              <div class="item-left">
+                <img
+                  :src="item.thumbnail"
+                  :alt="item.name"
+                  class="item-thumbnail"
+                />
+                <div class="item-info">
+                  <span class="item-name">{{ item.name }}</span>
+                  <span class="item-qty">Qty: {{ item.qty }}</span>
+                </div>
+              </div>
+              <span class="item-price">${{ item.price.toFixed(2) }}</span>
+            </router-link>
+
+            <div v-if="order.status === 'Delivered'" class="review-action-bar">
+              <router-link
+                :to="`/review/${item.productId}/${item.variantId}/${item.merchantId}`"
+                class="review-btn"
+              >
+                <span class="star-icon">★</span> Rate & Review Product
+              </router-link>
+            </div>
           </div>
         </div>
 
@@ -169,15 +197,92 @@ h3 {
 }
 
 .order-body {
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 1rem;
 }
 
-.order-item {
+.order-item-wrapper {
+  padding: 0.5rem 0;
+}
+
+.order-item-wrapper:not(:last-child) {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.order-item-link {
   display: flex;
   justify-content: space-between;
-  font-size: 0.85rem;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  padding: 0.25rem 0;
+}
+
+.item-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.item-thumbnail {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background-color: #f3f4f6;
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.item-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+.order-item-link:hover .item-name {
+  color: #2563eb;
+}
+
+.item-qty {
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+.item-price {
+  font-size: 0.875rem;
+  font-weight: 600;
   color: #374151;
-  padding: 0.2rem 0;
+}
+
+.review-action-bar {
+  display: flex;
+  align-items: center;
+  margin-top: 0.4rem;
+  padding-left: 3.75rem;
+}
+
+.review-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #2563eb;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.review-btn:hover {
+  text-decoration: underline;
+}
+
+.star-icon {
+  color: #2563eb;
+  font-size: 0.95rem;
 }
 
 .order-footer {
