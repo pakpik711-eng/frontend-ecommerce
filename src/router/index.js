@@ -9,53 +9,36 @@ import SearchResultsView from "@/views/SearchResultsView.vue";
 import CartView from "@/views/CartView.vue";
 import CheckoutView from "@/views/CheckoutView.vue";
 import OrderSuccessView from "@/views/OrderSuccessView.vue";
+import ReviewView from "@/views/ReviewView.vue";
 
 const routes = [
-  {
-    path: "/",
-    name: "Home",
-    component: HomeView,
-  },
-
+  { path: "/", name: "Home", component: HomeView },
   {
     path: "/login",
     name: "Login",
     component: LoginView,
     meta: { guestOnly: true },
   },
-
   {
     path: "/signup",
     name: "Signup",
     component: SignupView,
     meta: { guestOnly: true },
   },
-
-  {
-    path: "/search",
-    name: "Search",
-    component: SearchResultsView,
-  },
-  {
-    path: "/cart",
-    name: "Cart",
-    component: CartView,
-  },
-  {
-    path: "/checkout",
-    name: "Checkout",
-    component: CheckoutView,
-  },
-  {
-    path: "/order-success",
-    name: "OrderSuccess",
-    component: OrderSuccessView,
-  },
-
+  { path: "/search", name: "Search", component: SearchResultsView },
+  { path: "/cart", name: "Cart", component: CartView },
+  { path: "/checkout", name: "Checkout", component: CheckoutView },
+  { path: "/order-success", name: "OrderSuccess", component: OrderSuccessView },
   {
     path: "/profile",
     name: "Profile",
     component: ProfileView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/review/:p_id/:v_id/:m_id",
+    name: "Review",
+    component: ReviewView,
     meta: { requiresAuth: true },
   },
 ];
