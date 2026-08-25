@@ -40,5 +40,67 @@ function removeItem(){
 }
 </script>
 <style scoped>
+.cart-item {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
 
+.cart-item img {
+  width: 160px;
+  height: 160px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.product-info {
+  flex: 1;
+}
+
+.product-info h3 {
+  margin: 0 0 10px;
+  font-size: 20px;
+}
+
+.product-info p {
+  margin: 8px 0;
+}
+
+.quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 15px 0;
+}
+
+.quantity-control button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ccc;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.quantity-control button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.quantity-control span {
+  min-width: 25px;
+  text-align: center;
+}
+
+.product-info > button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
 </style>

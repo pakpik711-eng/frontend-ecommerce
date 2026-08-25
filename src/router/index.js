@@ -10,6 +10,7 @@ import CartView from "@/views/CartView.vue";
 import CheckoutView from "@/views/CheckoutView.vue";
 import OrderSuccessView from "@/views/OrderSuccessView.vue";
 import ReviewView from "@/views/ReviewView.vue";
+import ProductDetailView from "@/views/ProductDetailView.vue";
 
 const routes = [
   { path: "/", name: "Home", component: HomeView },
@@ -25,10 +26,33 @@ const routes = [
     component: SignupView,
     meta: { guestOnly: true },
   },
-  { path: "/search", name: "Search", component: SearchResultsView },
-  { path: "/cart", name: "Cart", component: CartView },
-  { path: "/checkout", name: "Checkout", component: CheckoutView },
-  { path: "/order-success", name: "OrderSuccess", component: OrderSuccessView },
+
+  {
+    path: "/search",
+    name: "Search",
+    component: SearchResultsView,
+  },
+  {
+  path: "/product/:productId",
+  name: "ProductDetail",
+  component: ProductDetailView,
+},
+  {
+    path: "/cart",
+    name: "Cart",
+    component: CartView,
+  },
+  {
+    path: "/checkout",
+    name: "Checkout",
+    component: CheckoutView,
+  },
+  {
+    path: "/order-success",
+    name: "OrderSuccess",
+    component: OrderSuccessView,
+  },
+
   {
     path: "/profile",
     name: "Profile",

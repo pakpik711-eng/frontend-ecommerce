@@ -4,6 +4,13 @@ export function getCart(){
     return apiRequest("/api/cart")
 }
 
+export function addCartItem(cartItems){
+    return apiRequest("/api/cart/items",{
+        method:"POST",
+        body:JSON.stringify(cartItems)
+    })
+}
+
 export function updateCartItemQuantity(cartItemId,quantity){
     return apiRequest(`/api/cart/items/${cartItemId}`,
         {

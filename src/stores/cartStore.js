@@ -1,6 +1,6 @@
-import { getCart, removeItemCartItem, updateCartItemQuantity } from "@/services/cartApi";
+import { addCartItem, getCart, removeItemCartItem, updateCartItemQuantity } from "@/services/cartApi";
 import { defineStore } from "pinia";
-import { computed, ref } from "vue";
+import { ref } from "vue";
 
 export const useCartStore=defineStore('cart',()=>{
 
@@ -8,9 +8,7 @@ export const useCartStore=defineStore('cart',()=>{
     const loading=ref(false)
     const error=ref(null)
 
-    const totalPrice=computed(()=>{
-        return cartItems.value.reduce((sum,item)=>sum+item.totalPrice,0)
-    });
+    const totalPrice=ref(0);
 
     async function fetchCart() {
       loading.value=true;
@@ -18,13 +16,31 @@ export const useCartStore=defineStore('cart',()=>{
       
       try {
           const response=await getCart();
-          cartItems.value=response.items;       
+          cartItems.value=response.items;  
+          totalPrice.value = response.totalPrice;
+     
       } catch (err) {
         error.value="Failed to Load cart"
       }
       finally{
         loading.value=false;
       }
+    }
+
+
+    async function addItem(item){
+     loading.value = true;
+     error.value = null;
+
+     try {
+      const response= await addCartItem(item);
+      cartItems.value.push(response.item);
+      totalPrice.value = response.totalPrice;
+      return response;
+      
+     } catch (err) {
+      error.value=err;
+     }
     }
 
 async function increaseQuantity(cartItemId){
@@ -65,8 +81,10 @@ async function changeQuantity(cartItemId,quantity) {
     const updatedItem=await updateCartItemQuantity(cartItemId,quantity);
     const index=cartItems.value.findIndex(item=>item.cartItemId===cartItemId);
      if(index!=-1){
-      cartItems.value[index]=updatedItem
+         cartItems.value[index].quantity =updatedItem.item.quantity;
+         cartItems.value[index].price =updatedItem.item.price;
      }
+      totalPrice.value =updatedItem.totalPrice;
   } catch (err) {
      error.value ="Unable to update quantity";
   }
@@ -80,6 +98,6 @@ async function removeItem(cartItemId) {
   }
   }
    
-  return {cartItems,loading,error,totalPrice,fetchCart,increaseQuantity,decreaseQuantity,removeItem};
+  return {cartItems,loading,error,totalPrice,fetchCart,increaseQuantity,decreaseQuantity,removeItem,addItem};
 
 })

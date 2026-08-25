@@ -30,7 +30,6 @@ export const useSearchStore = defineStore("search", () => {
       loading.value = false;
     }
   }
-
   return {
     products,
     loading,

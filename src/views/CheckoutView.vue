@@ -1,5 +1,4 @@
 <template>
-  <Header />
   <main class="checkout-page">
     <h1>Checkout</h1>
     <p v-if="checkoutStore.error" class="error">
