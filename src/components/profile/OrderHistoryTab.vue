@@ -2,7 +2,10 @@
   <div class="tab-content">
     <h3>Order History</h3>
 
-    <div v-if="orderStore.isLoading && orders.length === 0" class="empty-state">
+    <div
+      v-if="checkoutStore.isLoading && orders.length === 0"
+      class="empty-state"
+    >
       Loading orders...
     </div>
 
@@ -26,7 +29,7 @@
                 order.status !== 'Delivered' && order.status !== 'Cancelled'
               "
               class="cancel-btn"
-              :disabled="orderStore.isLoading"
+              :disabled="checkoutStore.isLoading"
               @click="handleCancel(order.id)"
             >
               Cancel Order
@@ -81,19 +84,19 @@
 <script setup>
 import { onMounted } from "vue";
 import { storeToRefs } from "pinia";
-import { useOrderStore } from "@/stores/orderStore";
+import { useCheckoutStore } from "@/stores/checkoutStore";
 
-const orderStore = useOrderStore();
-const { orders } = storeToRefs(orderStore);
+const checkoutStore = useCheckoutStore();
+const { orders } = storeToRefs(checkoutStore);
 
 onMounted(() => {
-  orderStore.loadOrders();
+  checkoutStore.loadOrders();
 });
 
 const handleCancel = async (id) => {
   if (confirm("Are you sure you want to cancel this order?")) {
     try {
-      await orderStore.cancelOrder(id);
+      await checkoutStore.cancelOrder(id);
     } catch (err) {
       alert(err.message || "Failed to cancel order");
     }

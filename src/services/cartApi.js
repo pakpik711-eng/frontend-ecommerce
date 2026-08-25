@@ -1,27 +1,38 @@
 import { apiRequest } from "./api";
 
-export function getCart(){
-    return apiRequest("/api/cart")
+const CART_URL = "http://10.17.48.83:8086";
+// const u_id = "7eb26687-8bb0-45c8-85ed-6da0cf26df36";
+
+export function getCartCount() {
+  return apiRequest(CART_URL, `/api/cart/${u_id}/count`);
 }
 
-export function addCartItem(cartItems){
-    return apiRequest("/api/cart/items",{
-        method:"POST",
-        body:JSON.stringify(cartItems)
-    })
+export function getCart() {
+  return apiRequest(CART_URL, `/api/cart/${u_id}`);
 }
 
-export function updateCartItemQuantity(cartItemId,quantity){
-    return apiRequest(`/api/cart/items/${cartItemId}`,
-        {
-            method:"PATCH",
-            body:JSON.stringify({quantity})
-        }
-    )
+export function addCartItem(cartItems) {
+  return apiRequest(CART_URL, `/api/cart/${u_id}/items`, {
+    method: "POST",
+    body: cartItems,
+  });
 }
 
-export function removeItemCartItem(cartItemId){
-    return apiRequest(`/api/cart/items/${cartItemId}`,{
-        method:'DELETE'
-    });
+export function updateCartItemQuantity(cartItemId, quantity) {
+  return apiRequest(CART_URL, `/api/${u_id}/cart/items/${cartItemId}`, {
+    method: "PATCH",
+    body: quantity,
+  });
+}
+
+export function removeItemCartItem(cartItemId) {
+  return apiRequest(CART_URL, `/api/cart/${u_id}/items/${cartItemId}`, {
+    method: "DELETE",
+  });
+}
+
+export function validateCart() {
+  return apiRequest(`/api/cart/${u_id}/validate`, {
+    method: "POST",
+  });
 }
