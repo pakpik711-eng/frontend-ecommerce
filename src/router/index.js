@@ -9,6 +9,7 @@ import SearchResultsView from "@/views/SearchResultsView.vue";
 import CartView from "@/views/CartView.vue";
 import CheckoutView from "@/views/CheckoutView.vue";
 import OrderSuccessView from "@/views/OrderSuccessView.vue";
+import ProductDetailView from "@/views/ProductDetailView.vue";
 
 const routes = [
   {
@@ -36,6 +37,11 @@ const routes = [
     name: "Search",
     component: SearchResultsView,
   },
+  {
+  path: "/product/:productId",
+  name: "ProductDetail",
+  component: ProductDetailView,
+},
   {
     path: "/cart",
     name: "Cart",

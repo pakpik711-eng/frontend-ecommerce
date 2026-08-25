@@ -1,5 +1,4 @@
 <template>
-  <Header />
   <h1>Search Results for {{ searchStore.searchQuery }}</h1>
 
   <ProductGrid :products="searchStore.products" />
@@ -26,8 +25,7 @@ function handleSearch(page) {
   searchStore.search(route.query.q, page);
 }
 watch(
-  () => route.query.q,
-  (newQuery) => {
+  () => route.query.q,(newQuery) => {
     if (newQuery) {
       searchStore.search(newQuery, 0);
     }
