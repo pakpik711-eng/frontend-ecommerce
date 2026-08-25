@@ -6,8 +6,8 @@ export function initiateGoogleAuth() {
   window.location.href = `${AUTH_URL}/oauth2/authorization/google`;
 }
 
-export async function registerUser(credentials) {
-  return await apiRequest(AUTH_URL, "/auth/register", {
+export function registerUser(credentials) {
+  return apiRequest(AUTH_URL, "/auth/register", {
     method: "POST",
     body: {
       email: credentials.email,
@@ -17,15 +17,15 @@ export async function registerUser(credentials) {
   });
 }
 
-export async function loginUser(credentials) {
-  return await apiRequest(AUTH_URL, "/auth/login", {
+export function loginUser(credentials) {
+  return apiRequest(AUTH_URL, "/auth/login", {
     method: "POST",
     body: credentials,
   });
 }
 
-export async function logoutUser() {
-  await apiRequest(AUTH_URL, "/auth/logout", {
+export function logoutUser() {
+  return apiRequest(AUTH_URL, "/auth/logout", {
     method: "POST",
   });
 }
@@ -35,7 +35,8 @@ export async function testAuth() {
     await apiRequest(AUTH_URL, "/test/user");
     return true;
   } catch (err) {
-    if (err.response?.status === 401) {
+    if (err.response?.status == 401) {
+      console.log("Un authorized...");
       return false;
     }
 

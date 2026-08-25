@@ -1,12 +1,10 @@
 <template>
   <main>
-      <p v-if="cartStore.loading">
-      Loading cart...
-    </p>
+    <p v-if="cartStore.loading">Loading cart...</p>
     <p v-else-if="cartStore.cartItems.length === 0">No items in cart</p>
 
     <template v-else>
-       <p v-if="cartStore.error"  class="error" > {{ cartStore.error }}  </p>
+      <p v-if="cartStore.error" class="error">{{ cartStore.error }}</p>
       <CartItem
         v-for="item in cartStore.cartItems"
         :key="item.cartItemId"
@@ -15,8 +13,7 @@
         @decrease="cartStore.decreaseQuantity"
         @remove="cartStore.removeItem"
       />
-      <CartSummary :total="cartStore.totalPrice"/>
-     
+      <CartSummary :total="cartStore.totalPrice" />
     </template>
   </main>
 </template>
@@ -33,7 +30,6 @@ const cartStore = useCartStore();
 onMounted(() => {
   cartStore.fetchCart();
 });
-
 </script>
 
 <style scoped>
@@ -54,4 +50,5 @@ onMounted(() => {
   .cart-grid {
     grid-template-columns: 1fr;
   }
-}</style>
+}
+</style>

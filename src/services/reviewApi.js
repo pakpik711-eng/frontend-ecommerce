@@ -52,3 +52,57 @@ export const reviewApi = {
     };
   },
 };
+
+// import { apiRequest } from "./api";
+
+// const REVIEW_URL = "http://10.17.48.83:8087";
+
+// export function createReview(reviewData) {
+//   return apiRequest(REVIEW_URL, "/api/reviews", {
+//     method: "POST",
+//     body: reviewData,
+//   });
+// }
+
+// export function getVariantReviews(variantId, merchantId = null) {
+//   const queryParams = new URLSearchParams();
+
+//   if (merchantId) {
+//     queryParams.append("merchantId", merchantId);
+//   }
+
+//   const query = queryParams.toString();
+
+//   return apiRequest(
+//     REVIEW_URL,
+//     `/api/reviews/variant/${variantId}${query ? `?${query}` : ""}`,
+//   );
+// }
+
+// export function getUserReviews(userId) {
+//   return apiRequest(
+//     REVIEW_URL,
+//     `/api/reviews/user/${userId}`,
+//   );
+// }
+
+// export function updateReview(reviewId, userId, reviewData) {
+//   return apiRequest(
+//     REVIEW_URL,
+//     `/api/reviews/${reviewId}?userId=${encodeURIComponent(userId)}`,
+//     {
+//       method: "PUT",
+//       body: reviewData,
+//     },
+//   );
+// }
+
+// export function deleteReview(reviewId, userId) {
+//   return apiRequest(
+//     REVIEW_URL,
+//     `/api/reviews/${reviewId}?userId=${encodeURIComponent(userId)}`,
+//     {
+//       method: "DELETE",
+//     },
+//   );
+// }

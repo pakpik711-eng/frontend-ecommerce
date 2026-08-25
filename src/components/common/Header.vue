@@ -11,29 +11,62 @@
     </div>
 
     <div class="nav-right">
-      <div v-if="authStore.isAuthenticated" class="profile-dropdown-wrapper">
-        <router-link to="/profile" class="profile-link" title="User Profile">
-          <div class="avatar-circle">
-            {{ userStore.userInitial }}
+      <template v-if="authStore.isAuthenticated">
+        <!-- Cart -->
+        <router-link to="/cart" class="cart-link" title="Shopping Cart">
+          <div class="cart-icon-wrapper">
+            <svg
+              class="cart-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="9" cy="20" r="1" />
+              <circle cx="19" cy="20" r="1" />
+              <path
+                d="M3 4h2l2.4 11.4a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 8H6"
+              />
+            </svg>
+
+            <span v-if="cartStore.cartCount > 0" class="cart-badge">
+              {{ cartStore.cartCount }}
+            </span>
           </div>
         </router-link>
 
-        <div class="dropdown-menu">
-          <router-link to="/profile?tab=details" class="dropdown-item">
-            Profile Information
+        <!-- Profile -->
+        <div class="profile-dropdown-wrapper">
+          <router-link to="/profile" class="profile-link" title="User Profile">
+            <div class="avatar-circle">
+              {{ userStore.userInitial }}
+            </div>
           </router-link>
-          <router-link to="/profile?tab=addresses" class="dropdown-item">
-            Manage Addresses
-          </router-link>
-          <router-link to="/profile?tab=orders" class="dropdown-item">
-            Order History
-          </router-link>
-          <div class="dropdown-divider"></div>
-          <button class="dropdown-item logout-action" @click="handleLogout">
-            Sign Out
-          </button>
+
+          <div class="dropdown-menu">
+            <router-link to="/profile?tab=details" class="dropdown-item">
+              Profile Information
+            </router-link>
+
+            <router-link to="/profile?tab=addresses" class="dropdown-item">
+              Manage Addresses
+            </router-link>
+
+            <router-link to="/profile?tab=orders" class="dropdown-item">
+              Order History
+            </router-link>
+
+            <div class="dropdown-divider"></div>
+
+            <button class="dropdown-item logout-action" @click="handleLogout">
+              Sign Out
+            </button>
+          </div>
         </div>
-      </div>
+      </template>
 
       <router-link v-else to="/login">
         <BaseButton text="Sign In" />
@@ -43,20 +76,53 @@
 </template>
 
 <script setup>
+import { onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
+
 import SearchBar from "./SearchBar.vue";
 import BaseButton from "./BaseButton.vue";
+
 import { useAuthStore } from "../../stores/authStore.js";
 import { useUserStore } from "@/stores/userStore.js";
+import { useCartStore } from "@/stores/cartStore.js";
 
 const router = useRouter();
+
 const authStore = useAuthStore();
 const userStore = useUserStore();
+const cartStore = useCartStore();
 
-const handleLogout = () => {
-  authStore.logout?.();
-  router.push("/login");
+const handleLogout = async () => {
+  await authStore.logout();
+
+  cartStore.clearCartCount();
+
+  await router.push("/login");
 };
+
+async function loadCartCount() {
+  if (!authStore.isAuthenticated) {
+    cartStore.clearCartCount();
+    return;
+  }
+
+  await cartStore.fetchCartCount();
+}
+
+onMounted(() => {
+  loadCartCount();
+});
+
+watch(
+  () => authStore.isAuthenticated,
+  (isAuthenticated) => {
+    if (isAuthenticated) {
+      loadCartCount();
+    } else {
+      cartStore.clearCartCount();
+    }
+  },
+);
 </script>
 
 <style scoped>
@@ -170,5 +236,53 @@ const handleLogout = () => {
 
 .dropdown-item.logout-action:hover {
   background-color: #fef2f2;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.cart-link {
+  text-decoration: none;
+  color: #374151;
+}
+
+.cart-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+}
+
+.cart-icon {
+  width: 24px;
+  height: 24px;
+  transition: color 0.2s ease;
+}
+
+.cart-icon-wrapper:hover .cart-icon {
+  color: #2563eb;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -5px;
+  right: -7px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background-color: #dc2626;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  box-sizing: border-box;
 }
 </style>

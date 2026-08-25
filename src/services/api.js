@@ -29,5 +29,17 @@ export async function apiRequest(BASE_URL, url, options = {}) {
 
       throw apiError;
     }
+
+    if (error.request) {
+      const apiError = new Error(
+        "Unable to reach the server. Please check your connection.",
+      );
+
+      apiError.request = error.request;
+
+      throw apiError;
+    }
+
+    throw error;
   }
 }
