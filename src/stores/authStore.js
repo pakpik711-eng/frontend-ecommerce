@@ -56,16 +56,25 @@ export const useAuthStore = defineStore("auth", () => {
   async function initializeAuth() {
     isLoading.value = true;
     error.value = null;
+
     try {
       const userData = await userApi.fetchProfile();
 
       const userStore = useUserStore();
-      userStore.profile = userData;
-      // await testAuth();
 
+      if (!userData) {
+        userStore.profile = null;
+        isAuthenticated.value = false;
+        return;
+      }
+
+      userStore.profile = userData;
       isAuthenticated.value = true;
     } catch (err) {
-      console.log("Not authenticated");
+      console.error("Authentication initialization failed:", err);
+
+      const userStore = useUserStore();
+      userStore.profile = null;
       isAuthenticated.value = false;
     } finally {
       isLoading.value = false;
@@ -76,13 +85,16 @@ export const useAuthStore = defineStore("auth", () => {
   async function logout() {
     isLoading.value = true;
     error.value = null;
+
+    const userStore = useUserStore();
+
     try {
       await logoutUser();
     } catch (err) {
       error.value = err.message || "Failed to log out";
-      throw err;
     } finally {
       isAuthenticated.value = false;
+      userStore.profile = null;
       isLoading.value = false;
     }
   }
