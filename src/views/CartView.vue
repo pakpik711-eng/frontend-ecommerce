@@ -1,5 +1,4 @@
 <template>
-  <Header />
   <main>
       <p v-if="cartStore.loading">
       Loading cart...
@@ -37,4 +36,22 @@ onMounted(() => {
 
 </script>
 
-<style></style>
+<style scoped>
+.cart-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px;
+}
+
+.cart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+@media (max-width: 768px) {
+  .cart-grid {
+    grid-template-columns: 1fr;
+  }
+}</style>

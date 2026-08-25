@@ -28,7 +28,7 @@ export const useCheckoutStore=defineStore('checkout',()=>{
         if(err.response?.unavailableItems){
              stockErrors.value = err.response.unavailableItems;
         }else {
-        error.value = "Some products are no longer available.";
+        error.value = "products are no longer available.";
       }
       return false;
     }finally {

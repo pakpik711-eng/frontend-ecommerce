@@ -1,6 +1,6 @@
 <template>
   <div class="search-box">
-    <input v-model="searchText" type="text" placeholder="Search..." class="search-input"  @input="handleInput" />
+    <input v-model="searchText" type="text" placeholder="Search..." class="search-input"  @keyup.enter="performSearch" />
     <button class="search-btn"  @click="performSearch">Search</button>
   </div>
 </template>
@@ -9,17 +9,9 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-
 const searchText=ref("")
 const router=useRouter()
-let timer = null;
 
-function handleInput(){
-  clearTimeout(timer);
-  timer = setTimeout(() => {
-    performSearch();
-  }, 500);
-}
 function performSearch(){
   const query=searchText.value.trim();
 
