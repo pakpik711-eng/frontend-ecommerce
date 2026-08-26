@@ -10,7 +10,7 @@ export const useProductStore = defineStore("product", () => {
   const error = ref(null);
 
   const page = ref(0);
-  const size = ref(5);
+  const size = ref(10);
 
 
 

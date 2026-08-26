@@ -169,7 +169,6 @@ watch(
   },
 );
 </script>
-
 <style scoped>
 .navbar-wrapper {
   position: sticky;

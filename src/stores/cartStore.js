@@ -52,8 +52,9 @@ export const useCartStore = defineStore("cart", () => {
     error.value = null;
 
     try {
+      console.log(item);
       const response = await addCartItem(item);
-
+      console.log(response);
       cartItems.value.push(response.item);
       totalPrice.value = response.totalPrice;
 

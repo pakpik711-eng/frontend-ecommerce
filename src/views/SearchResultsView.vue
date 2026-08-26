@@ -1,5 +1,5 @@
 <template>
-  <h1>Search Results for {{ searchStore.searchQuery }}</h1>
+  <h3 class="page-title">Results for {{ searchStore.searchQuery }}</h3>
 
   <ProductGrid :products="searchStore.products" />
   <SearchPagination
@@ -33,4 +33,21 @@ watch(
   { immediate: true },
 );
 </script>
-<style></style>
+
+<style scoped>
+.page-title {
+  max-width: 1200px;
+  margin: 24px auto 20px;
+  padding: 0 24px;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--color-text-main, #14151a);
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 1.15rem;
+    padding: 0 16px;
+  }
+}
+</style>

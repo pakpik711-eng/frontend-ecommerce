@@ -1,19 +1,26 @@
 <template>
-  <main>
-    <p v-if="cartStore.loading">Loading cart...</p>
-    <p v-else-if="cartStore.cartItems.length === 0">No items in cart</p>
+  <main class="cart-page">
+    <h1 class="page-title">Shopping Cart</h1>
+    <p v-if="cartStore.loading" class="status-msg">Loading cart...</p>
+    <p v-else-if="cartStore.cartItems.length === 0" class="status-msg">No items in cart</p>
 
     <template v-else>
       <p v-if="cartStore.error" class="error">{{ cartStore.error }}</p>
-      <CartItem
-        v-for="item in cartStore.cartItems"
-        :key="item.cartItemId"
-        :item="item"
-        @increase="cartStore.increaseQuantity"
-        @decrease="cartStore.decreaseQuantity"
-        @remove="cartStore.removeItem"
-      />
-      <CartSummary :total="cartStore.totalPrice" />
+      <div class="cart-layout">
+        <div class="cart-items">
+          <CartItem
+            v-for="item in cartStore.cartItems"
+            :key="item.cartItemId"
+            :item="item"
+            @increase="cartStore.increaseQuantity"
+            @decrease="cartStore.decreaseQuantity"
+            @remove="cartStore.removeItem"
+          />
+        </div>
+        <aside>
+          <CartSummary :total="cartStore.totalPrice" />
+        </aside>
+      </div>
     </template>
   </main>
 </template>
@@ -34,21 +41,59 @@ onMounted(() => {
 
 <style scoped>
 .cart-page {
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 30px;
+  padding: 8px 24px 48px;
 }
 
-.cart-grid {
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+  margin: 24px 0 20px;
+}
+
+.status-msg {
+  color: var(--color-text-muted);
+  padding: 2rem 0;
+}
+
+.error {
+  background-color: var(--color-danger-light);
+  color: var(--color-danger);
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1.2rem;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.cart-layout {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  margin-bottom: 30px;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+.cart-items {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 @media (max-width: 768px) {
-  .cart-grid {
+  .cart-layout {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .cart-page {
+    padding: 8px 16px 32px;
+  }
+
+  .page-title {
+    font-size: 1.25rem;
   }
 }
 </style>

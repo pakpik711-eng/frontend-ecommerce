@@ -13,8 +13,8 @@ defineProps({
 
 <style scoped>
 .btn {
-  padding: 8px 16px;
-  border-radius: 6px;
+  padding: 10px 18px;
+  border-radius: 4px;
   border: 1px solid #2563eb;
   background-color: #2563eb;
   color: #ffffff;
@@ -25,5 +25,7 @@ defineProps({
 
 .btn:hover {
   background-color: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #ffffff;
 }
 </style>
