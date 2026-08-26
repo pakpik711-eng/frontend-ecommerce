@@ -12,7 +12,6 @@
 
     <div class="nav-right">
       <template v-if="authStore.isAuthenticated">
-        <!-- Cart -->
         <router-link to="/cart" class="cart-link" title="Shopping Cart">
           <div class="cart-icon-wrapper">
             <svg
@@ -38,7 +37,6 @@
           </div>
         </router-link>
 
-        <!-- Profile -->
         <div class="profile-dropdown-wrapper">
           <router-link to="/profile" class="profile-link" title="User Profile">
             <div class="avatar-circle">
@@ -100,24 +98,24 @@ const handleLogout = async () => {
   await router.push("/login");
 };
 
-async function loadCartCount() {
+async function fetchCartItems() {
   if (!authStore.isAuthenticated) {
     cartStore.clearCartCount();
     return;
   }
 
-  await cartStore.fetchCartCount();
+  await cartStore.fetchCart();
 }
 
 onMounted(() => {
-  loadCartCount();
+  fetchCartItems();
 });
 
 watch(
   () => authStore.isAuthenticated,
   (isAuthenticated) => {
     if (isAuthenticated) {
-      loadCartCount();
+      fetchCartItems();
     } else {
       cartStore.clearCartCount();
     }

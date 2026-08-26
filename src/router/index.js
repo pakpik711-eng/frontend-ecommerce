@@ -33,24 +33,27 @@ const routes = [
     component: SearchResultsView,
   },
   {
-  path: "/product/:productId",
-  name: "ProductDetail",
-  component: ProductDetailView,
-},
+    path: "/product/:productId",
+    name: "ProductDetail",
+    component: ProductDetailView,
+  },
   {
     path: "/cart",
     name: "Cart",
     component: CartView,
+    meta: { requiresAuth: true },
   },
   {
     path: "/checkout",
     name: "Checkout",
     component: CheckoutView,
+    meta: { requiresAuth: true },
   },
   {
     path: "/order-success",
     name: "OrderSuccess",
     component: OrderSuccessView,
+    meta: { requiresAuth: true },
   },
 
   {
@@ -72,11 +75,17 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const authStore = useAuthStore();
+  if (!authStore.authInitialized) await authStore.initializeAuth();
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    return { name: "Login" };
+    return {
+      name: "Login",
+      query: {
+        redirect: to.fullPath,
+      },
+    };
   }
 
   if (to.meta.guestOnly && authStore.isAuthenticated) {

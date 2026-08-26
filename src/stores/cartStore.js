@@ -57,7 +57,6 @@ export const useCartStore = defineStore("cart", () => {
       cartItems.value.push(response.item);
       totalPrice.value = response.totalPrice;
 
-      // One new cart item
       cartCount.value += 1;
 
       return response;

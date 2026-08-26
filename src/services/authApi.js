@@ -1,6 +1,7 @@
 import { apiRequest } from "./api";
 
 const AUTH_URL = "http://localhost:8084";
+// const AUTH_URL = "http://10.17.48.85:8084";
 
 export function initiateGoogleAuth() {
   window.location.href = `${AUTH_URL}/oauth2/authorization/google`;
@@ -12,7 +13,7 @@ export function registerUser(credentials) {
     body: {
       email: credentials.email,
       password: credentials.password,
-      role: "USER",
+      role: "CUSTOMER",
     },
   });
 }

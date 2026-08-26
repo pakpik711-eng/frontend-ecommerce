@@ -8,6 +8,7 @@ import {
   testAuth,
 } from "@/services/authApi";
 import { useUserStore } from "./userStore";
+import { useCartStore } from "./cartStore";
 import { userApi } from "@/services/userApi";
 
 export const useAuthStore = defineStore("auth", () => {
@@ -23,11 +24,27 @@ export const useAuthStore = defineStore("auth", () => {
   async function login(credentials) {
     isLoading.value = true;
     error.value = null;
+
     try {
       await loginUser(credentials);
-      isAuthenticated.value = true;
+
+      // The login API establishes the authenticated session/cookie.
+      // Immediately verify it and load the user profile so every component
+      // reacts to the same Pinia state without requiring a page reload.
       const userStore = useUserStore();
-      userStore.loadProfile();
+      const userData = await userApi.fetchProfile();
+
+      if (!userData) {
+        isAuthenticated.value = false;
+        throw new Error(
+          "Login succeeded, but the authenticated session could not be verified.",
+        );
+      }
+
+      userStore.profile = userData;
+      isAuthenticated.value = true;
+      authInitialized.value = true;
+
       return true;
     } catch (err) {
       isAuthenticated.value = false;
@@ -59,7 +76,6 @@ export const useAuthStore = defineStore("auth", () => {
 
     try {
       const userData = await userApi.fetchProfile();
-
       const userStore = useUserStore();
 
       if (!userData) {
@@ -87,6 +103,7 @@ export const useAuthStore = defineStore("auth", () => {
     error.value = null;
 
     const userStore = useUserStore();
+    const cartStore = useCartStore();
 
     try {
       await logoutUser();
@@ -95,6 +112,9 @@ export const useAuthStore = defineStore("auth", () => {
     } finally {
       isAuthenticated.value = false;
       userStore.profile = null;
+      cartStore.clearCartCount();
+      cartStore.cartItems = [];
+      cartStore.totalPrice = 0;
       isLoading.value = false;
     }
   }

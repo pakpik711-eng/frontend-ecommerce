@@ -58,6 +58,7 @@ const showAddressModal = ref(false);
 
 onMounted(async () => {
   await userStore.loadAddresses();
+  cartStore.fetchCart();
 });
 
 async function handleAddAddress(addressData) {
