@@ -51,7 +51,15 @@
 
       <p class="toggle-text">
         Already have an account?
-        <router-link to="/login" class="link-btn">Log in</router-link>
+        <router-link
+          :to="{
+            name: 'Login',
+            query: route.query,
+          }"
+          class="link-btn"
+        >
+          Log in
+        </router-link>
       </p>
     </div>
   </div>
@@ -59,7 +67,7 @@
 
 <script setup>
 import { ref, computed } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
 import { usePasswordValidation } from "@/composables/usePasswordValidation";
 
@@ -70,6 +78,7 @@ import PasswordInput from "@/components/auth/PasswordInput.vue";
 import PasswordRules from "@/components/auth/PasswordRules.vue";
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 
 const email = ref("");
@@ -94,7 +103,13 @@ const handleSignup = async () => {
     password: password.value,
   });
 
-  router.push("/");
+  const redirect = route.query.redirect;
+
+  if (redirect && typeof redirect === "string") {
+    await router.push(redirect);
+  } else {
+    await router.push({ name: "Home" });
+  }
 };
 </script>
 

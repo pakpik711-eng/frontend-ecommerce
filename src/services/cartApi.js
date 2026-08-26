@@ -1,7 +1,7 @@
 import { apiRequest } from "./api";
 
 const CART_URL = "http://10.17.48.83:8086";
-// const u_id = "7eb26687-8bb0-45c8-85ed-6da0cf26df36";
+const u_id = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1";
 
 export function getCartCount() {
   return apiRequest(CART_URL, `/api/cart/${u_id}/count`);

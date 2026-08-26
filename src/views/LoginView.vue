@@ -33,7 +33,15 @@
 
       <p class="toggle-text">
         Don't have an account?
-        <router-link to="/signup" class="link-btn">Sign up</router-link>
+        <router-link
+          :to="{
+            name: 'Signup',
+            query: route.query,
+          }"
+          class="link-btn"
+        >
+          Sign up
+        </router-link>
       </p>
     </div>
   </div>
@@ -41,7 +49,7 @@
 
 <script setup>
 import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
 
 import BaseButton from "@/components/common/BaseButton.vue";
@@ -50,6 +58,7 @@ import AuthDivider from "@/components/auth/AuthDivider.vue";
 import PasswordInput from "@/components/auth/PasswordInput.vue";
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 
 const email = ref("");
@@ -62,12 +71,20 @@ const handleGoogleAuth = () => {
 
 const handleLogin = async () => {
   loginError.value = "";
+
   try {
     await authStore.login({
       email: email.value,
       password: password.value,
     });
-    router.push("/");
+
+    const redirect = route.query.redirect;
+
+    if (redirect && typeof redirect === "string") {
+      await router.push(redirect);
+    } else {
+      await router.push({ name: "Home" });
+    }
   } catch (err) {
     loginError.value = err.message || "Failed to log in";
   }
