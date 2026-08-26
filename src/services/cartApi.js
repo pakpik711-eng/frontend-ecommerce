@@ -1,38 +1,39 @@
 import { apiRequest } from "./api";
-
+ 
 const CART_URL = "http://10.17.48.83:8086";
-// const u_id = "7eb26687-8bb0-45c8-85ed-6da0cf26df36";
-
+const u_id = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1";
+ 
 export function getCartCount() {
   return apiRequest(CART_URL, `/api/cart/${u_id}/count`);
 }
-
+ 
 export function getCart() {
   return apiRequest(CART_URL, `/api/cart/${u_id}`);
 }
-
+ 
 export function addCartItem(cartItems) {
   return apiRequest(CART_URL, `/api/cart/${u_id}/items`, {
     method: "POST",
     body: cartItems,
   });
 }
-
+ 
 export function updateCartItemQuantity(cartItemId, quantity) {
   return apiRequest(CART_URL, `/api/${u_id}/cart/items/${cartItemId}`, {
     method: "PATCH",
     body: quantity,
   });
 }
-
+ 
 export function removeItemCartItem(cartItemId) {
   return apiRequest(CART_URL, `/api/cart/${u_id}/items/${cartItemId}`, {
     method: "DELETE",
   });
 }
-
+ 
 export function validateCart() {
   return apiRequest(`/api/cart/${u_id}/validate`, {
     method: "POST",
   });
 }
+ 

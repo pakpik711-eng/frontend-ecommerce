@@ -4,7 +4,7 @@
 
     <div class="product-info">
       <h3>{{ item.productName }}</h3>
-      <p>Price: ₹{{ item.unitPrice.toLocaleString("en-IN") }}</p>
+      <p>Price: ₹{{ (item.unitPrice || 0).toLocaleString("en-IN") }}</p>
 
       <div class="quantity-control">
         <button :disabled="item.quantity == 1" @click="decreaseQuantity">
@@ -13,7 +13,7 @@
         <span>{{ item.quantity }}</span>
         <button @click="increaseQuantity">+</button>
       </div>
-      <p>Total: ₹{{ item.lineTotal.toLocaleString("en-IN") }}</p>
+      <p>Total: ₹{{ (item.lineTotal || 0).toLocaleString("en-IN") }}</p>
 
       <button @click="removeItem">Remove</button>
     </div>
@@ -39,22 +39,24 @@ function removeItem() {
   emit("remove", props.item.cartItemId);
 }
 </script>
+
 <style scoped>
 .cart-item {
   display: flex;
   gap: 20px;
-  padding: 20px;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 18px;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
 }
 
 .cart-item img {
-  width: 160px;
-  height: 160px;
+  width: 140px;
+  height: 140px;
   object-fit: contain;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
 }
 
 .product-info {
@@ -62,29 +64,34 @@ function removeItem() {
 }
 
 .product-info h3 {
-  margin: 0 0 10px;
-  font-size: 20px;
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--color-text-main);
 }
 
 .product-info p {
-  margin: 8px 0;
+  margin: 6px 0;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
 }
 
 .quantity-control {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 15px 0;
+  gap: 10px;
+  margin: 12px 0;
 }
 
 .quantity-control button {
-  width: 32px;
-  height: 32px;
-  border: 1px solid #ccc;
-  background: white;
-  border-radius: 6px;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 18px;
+  font-size: 16px;
+  color: var(--color-text-main);
 }
 
 .quantity-control button:disabled {
@@ -95,12 +102,33 @@ function removeItem() {
 .quantity-control span {
   min-width: 25px;
   text-align: center;
+  font-weight: 500;
 }
 
 .product-info > button {
   padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-danger);
+  font-size: 0.85rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.product-info > button:hover {
+  background: var(--color-danger-light);
+}
+
+@media (max-width: 480px) {
+  .cart-item {
+    flex-direction: column;
+  }
+
+  .cart-item img {
+    width: 100%;
+    height: 180px;
+  }
 }
 </style>

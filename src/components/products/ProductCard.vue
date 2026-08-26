@@ -49,17 +49,18 @@ function viewProduct(){
 
 <style scoped>
 .product-card {
-  background: white;
-  border: 1px solid #e5e5e5;
-  border-radius: 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .product-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border);
 }
 
 .product-image {
@@ -67,6 +68,7 @@ function viewProduct(){
   height: 220px;
   object-fit: cover;
   display: block;
+  background-color: var(--color-bg);
 }
 
 .product-info {
@@ -75,28 +77,35 @@ function viewProduct(){
 
 .product-info h2 {
   margin: 0 0 8px;
-  font-size: 18px;
-  color: #222;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .merchants {
   margin: 0 0 16px;
-  color: #666;
-  font-size: 14px;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
 }
 
 .product-info button {
   width: 100%;
   padding: 10px;
-  border: none;
-  border-radius: 6px;
-  background: #222;
-  color: white;
-  font-size: 14px;
+  border: 1.5px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .product-info button:hover {
-  background: #444;
+  background: var(--color-primary);
+  color: #ffffff;
 }
 </style>

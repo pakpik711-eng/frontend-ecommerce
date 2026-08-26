@@ -1,8 +1,14 @@
 <template>
   <nav class="navbar">
     <div class="nav-left">
-      <RouterLink to="/">
-        <img src="../../assets/logo.svg" alt="Logo" class="logo" />
+      <RouterLink to="/" class="brand">
+        <span class="brand-mark">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 8H18L17.2 19.2C17.14 20.02 16.46 20.66 15.64 20.66H8.36C7.54 20.66 6.86 20.02 6.8 19.2L6 8Z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M9 8V6C9 4.34 10.34 3 12 3C13.66 3 15 4.34 15 6V8" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="brand-name">Buy<span class="brand-accent">Ease</span></span>
       </RouterLink>
     </div>
 
@@ -12,7 +18,7 @@
 
     <div class="nav-right">
       <template v-if="authStore.isAuthenticated">
-        <!-- Cart -->
+    
         <router-link to="/cart" class="cart-link" title="Shopping Cart">
           <div class="cart-icon-wrapper">
             <svg
@@ -124,20 +130,48 @@ watch(
   },
 );
 </script>
-
 <style scoped>
 .navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+  gap: 24px;
+  padding: 14px 32px;
+  background-color: var(--color-surface, #ffffff);
+  border-bottom: 1px solid var(--color-border, #e3e3e6);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  flex-wrap: wrap;
 }
 
-.logo {
-  height: 32px;
-  width: auto;
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary, #111214);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brand-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text-main, #14151a);
+}
+
+.brand-accent {
+  color: var(--color-text-muted, #6b7280);
+  font-weight: 400;
 }
 
 .nav-center {
@@ -147,14 +181,68 @@ watch(
   margin: 0 20px;
 }
 
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
 .nav-right a {
   text-decoration: none;
+}
+
+.cart-link {
+  color: var(--color-text-main, #14151a);
+}
+
+.cart-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.cart-icon-wrapper:hover {
+  background-color: var(--color-bg, #f7f7f8);
+}
+
+.cart-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--color-text-main, #14151a);
+  transition: color 0.2s ease;
+}
+
+.cart-icon-wrapper:hover .cart-icon {
+  color: var(--color-primary, #111214);
+}
+
+.cart-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background-color: var(--color-danger, #e0313a);
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  box-sizing: border-box;
 }
 
 .profile-dropdown-wrapper {
   position: relative;
   display: inline-block;
-  padding-bottom: 4px;
+  padding-bottom: 14px;
 }
 
 .profile-link {
@@ -163,9 +251,9 @@ watch(
 }
 
 .avatar-circle {
-  width: 36px;
-  height: 36px;
-  background-color: #2563eb;
+  width: 38px;
+  height: 38px;
+  background-color: var(--color-primary, #111214);
   color: #ffffff;
   border-radius: 50%;
   display: flex;
@@ -178,37 +266,41 @@ watch(
 }
 
 .avatar-circle:hover {
-  background-color: #1d4ed8;
+  background-color: var(--color-primary-hover, #000000);
 }
 
-/* Dropdown Menu Styles */
 .dropdown-menu {
-  display: none;
   position: absolute;
   right: 0;
   top: 100%;
-  min-width: 180px;
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  box-shadow:
-    0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  min-width: 190px;
+  background-color: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e3e3e6);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
   padding: 0.5rem 0;
   z-index: 50;
+  margin-top: 10px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s linear 0.15s;
 }
 
-/* Show dropdown on parent hover */
 .profile-dropdown-wrapper:hover .dropdown-menu {
-  display: block;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition-delay: 0s;
 }
 
 .dropdown-item {
   display: block;
   width: 100%;
-  padding: 0.6rem 1rem;
+  padding: 0.65rem 1.1rem;
   font-size: 0.875rem;
-  color: #374151;
+  font-weight: 500;
+  color: var(--color-text-muted, #6b7280);
   text-align: left;
   background: none;
   border: none;
@@ -220,69 +312,44 @@ watch(
 }
 
 .dropdown-item:hover {
-  background-color: #f3f4f6;
-  color: #111827;
+  background-color: var(--color-primary-light, #f0f0f1);
+  color: var(--color-primary, #111214);
 }
 
 .dropdown-divider {
   height: 1px;
-  background-color: #f3f4f6;
+  background-color: var(--color-border-light, #eeeeef);
   margin: 0.35rem 0;
 }
 
 .dropdown-item.logout-action {
-  color: #dc2626;
+  color: var(--color-danger, #e0313a);
 }
 
 .dropdown-item.logout-action:hover {
-  background-color: #fef2f2;
+  background-color: var(--color-danger-light, #fdedee);
 }
 
-.nav-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+@media (max-width: 720px) {
+  .navbar {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+
+  .nav-center {
+    order: 3;
+    flex-basis: 100%;
+    margin: 0;
+  }
+
+  .brand-name {
+    font-size: 1.15rem;
+  }
 }
 
-.cart-link {
-  text-decoration: none;
-  color: #374151;
-}
-
-.cart-icon-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  cursor: pointer;
-}
-
-.cart-icon {
-  width: 24px;
-  height: 24px;
-  transition: color 0.2s ease;
-}
-
-.cart-icon-wrapper:hover .cart-icon {
-  color: #2563eb;
-}
-
-.cart-badge {
-  position: absolute;
-  top: -5px;
-  right: -7px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
-  border-radius: 999px;
-  background-color: #dc2626;
-  color: #ffffff;
-  font-size: 0.7rem;
-  font-weight: 700;
-  line-height: 18px;
-  text-align: center;
-  box-sizing: border-box;
+@media (max-width: 400px) {
+  .brand-name {
+    display: none;
+  }
 }
 </style>
