@@ -108,7 +108,10 @@
 
             <div v-if="isDelivered(order.status)" class="review-action-bar">
               <router-link
-                :to="`/review/${item.productId}/${item.variantId}/${item.merchantId}`"
+                :to="{
+                  path: `/review/${item.productId}/${item.variantId}/${item.merchantId}`,
+                  query: { name: item.productName, thumbnail: item.imageUrl },
+                }"
                 class="review-btn"
               >
                 <span class="star-icon"> ★ </span>

@@ -1,30 +1,25 @@
 <template>
   <div class="checkout-summary">
-     <h2>Order Summary</h2>
-    <div class="summary-row">
-      <span>Subtotal</span>
-      <span> ₹{{ (subtotal || 0).toLocaleString("en-IN") }} </span>
-    </div>
+    <h2>Order Summary</h2>
     <div class="summary-row">
       <strong>Total</strong>
-      <strong> ₹{{ (subtotal || 0).toLocaleString("en-IN") }}</strong>
+      <strong> ₹{{ (total || 0).toLocaleString("en-IN") }}</strong>
     </div>
   </div>
 </template>
 
 <script setup>
 defineProps({
-  subtotal: {
+  total: {
     type: Number,
     required: true,
   },
 });
-
 </script>
 <style scoped>
 .checkout-summary {
   background: var(--color-surface);
-  border: .5px solid var(--color-text-main);
+  border: 0.5px solid var(--color-text-main);
   border-radius: 4px;
   padding: 1.5rem;
   position: sticky;
@@ -40,16 +35,8 @@ defineProps({
 .summary-row {
   display: flex;
   justify-content: space-between;
-  font-size: 0.9rem;
-  color: var(--color-text-muted);
-  padding: 0.5rem 0;
-}
-
-.summary-row:last-child {
-  border-top: 1px solid var(--color-border-light);
-  margin-top: 0.4rem;
-  padding-top: 0.9rem;
-  color: var(--color-text-main);
   font-size: 1rem;
+  color: var(--color-text-main);
+  padding: 0.5rem 0;
 }
 </style>

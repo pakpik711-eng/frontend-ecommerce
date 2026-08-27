@@ -37,11 +37,17 @@ const routes = [
     name: "ProductDetail",
     component: ProductDetailView,
   },
+ 
+  {
+    path: "/product/details/:productId/:variantId",
+    name: "ProductDetailWithVariant",
+    component: ProductDetailView,
+  },
   {
     path: "/cart",
     name: "Cart",
     component: CartView,
-    // meta: { requiresAuth: true },
+    meta: { requiresAuth: true },
   },
   {
     path: "/checkout",
