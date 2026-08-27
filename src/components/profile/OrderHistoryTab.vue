@@ -151,7 +151,6 @@ const handleCancel = async (id) => {
   }
 };
 </script>
-
 <style scoped>
 h3 {
   margin-bottom: 1.25rem;
