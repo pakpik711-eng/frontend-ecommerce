@@ -2,6 +2,7 @@
   <div class="profile-container">
     <aside class="sidebar">
       <h2>Account Settings</h2>
+
       <nav class="tabs-nav">
         <button
           v-for="tab in tabs"
@@ -13,7 +14,12 @@
           {{ tab.label }}
         </button>
       </nav>
+
       <button class="logout-btn" @click="handleLogout">Sign Out</button>
+
+      <span v-if="logoutError" class="error-msg">
+        {{ logoutError }}
+      </span>
     </aside>
 
     <section class="content-area">
@@ -23,10 +29,12 @@
 </template>
 
 <script setup>
-import { computed, onMounted, watch, ref } from "vue";
+import { computed, watch, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
+
 import { useAuthStore } from "@/stores/authStore";
 import { useUserStore } from "@/stores/userStore";
+import { useCartStore } from "@/stores/cartStore";
 
 import UserDetailsTab from "@/components/profile/UserDetailsTab.vue";
 import ChangePasswordTab from "@/components/profile/ChangePasswordTab.vue";
@@ -35,14 +43,28 @@ import OrderHistoryTab from "@/components/profile/OrderHistoryTab.vue";
 
 const router = useRouter();
 const route = useRoute();
+
 const authStore = useAuthStore();
 const userStore = useUserStore();
+const cartStore = useCartStore();
 
 const tabs = [
-  { id: "details", label: "Profile Details" },
-  { id: "orders", label: "Order History" },
-  { id: "addresses", label: "Saved Addresses" },
-  { id: "password", label: "Change Password" },
+  {
+    id: "details",
+    label: "Profile Details",
+  },
+  {
+    id: "orders",
+    label: "Order History",
+  },
+  {
+    id: "addresses",
+    label: "Saved Addresses",
+  },
+  {
+    id: "password",
+    label: "Change Password",
+  },
 ];
 
 const tabComponents = {
@@ -56,31 +78,53 @@ const currentTab = ref(
   tabComponents[route.query.tab] ? route.query.tab : "details",
 );
 
+const logoutError = ref("");
+
 const selectTab = (tabId) => {
   currentTab.value = tabId;
-  router.push({ query: { ...route.query, tab: tabId } });
+
+  router.push({
+    query: {
+      ...route.query,
+      tab: tabId,
+    },
+  });
 };
 
 watch(
   () => route.query.tab,
   (newTab) => {
-    if (newTab && tabComponents[newTab]) {
-      currentTab.value = newTab;
-    } else {
-      currentTab.value = "details";
-    }
+    currentTab.value = newTab && tabComponents[newTab] ? newTab : "details";
   },
 );
 
 const activeComponent = computed(() => tabComponents[currentTab.value]);
 
-onMounted(() => {
-  userStore.loadProfile();
-});
-
 const handleLogout = () => {
-  authStore.logout?.();
-  router.push("/login");
+  logoutError.value = "";
+
+  authStore
+    .logout()
+    .then(() => {
+      userStore.clearProfile();
+
+      cartStore.clearCartCount();
+      cartStore.cartItems = [];
+      cartStore.totalPrice = 0;
+
+      return router.push("/login");
+    })
+    .catch((error) => {
+      userStore.clearProfile();
+
+      cartStore.clearCartCount();
+      cartStore.cartItems = [];
+      cartStore.totalPrice = 0;
+
+      logoutError.value = error.message || "Failed to log out";
+
+      return router.push("/login");
+    });
 };
 </script>
 
@@ -144,6 +188,13 @@ const handleLogout = () => {
 
 .logout-btn:hover {
   background-color: #fef2f2;
+}
+
+.error-msg {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.78rem;
+  color: #dc2626;
 }
 
 .content-area {
