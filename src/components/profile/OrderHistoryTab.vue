@@ -113,9 +113,11 @@
               >
                 <span class="star-icon"> ★ </span>
                 Rate & Review Product
+
               </router-link>
             </div>
           </div>
+          
         </div>
 
         <div class="order-footer">
