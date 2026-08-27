@@ -9,42 +9,35 @@
     <div class="product-info">
       <h2>{{ product.name }}</h2>
 
-      <p class="merchants">
-        {{ product.merchantCount }} sellers
-      </p>
+      <p class="merchants">{{ product.totalMerchantCount }} sellers</p>
 
-      <button @click="viewProduct">
-        View Product
-      </button>
+      <button @click="viewProduct">View Product</button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router';
+import { useRouter } from "vue-router";
 
-const props=defineProps({
+const props = defineProps({
   product: {
     type: Object,
     required: true,
   },
 });
 
-const router=useRouter();
+const router = useRouter();
 
-function viewProduct(){
-  const productId= props.product.productId;
+function viewProduct() {
+  const productId = props.product.productId;
 
   router.push({
     name: "ProductDetail",
     params: {
       productId,
     },
-  })
-  
+  });
 }
-
-
 </script>
 
 <style scoped>
@@ -54,7 +47,10 @@ function viewProduct(){
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .product-card:hover {
@@ -101,7 +97,9 @@ function viewProduct(){
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .product-info button:hover {

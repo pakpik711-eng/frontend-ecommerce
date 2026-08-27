@@ -12,19 +12,16 @@
       <p class="order-id">
         Order ID: <strong>{{ route.query.orderId }}</strong>
       </p>
-      <button class="continue-btn" @click="goHome">
-        Continue Shopping
-      </button>
+      <button class="continue-btn" @click="goHome">Continue Shopping</button>
     </div>
   </main>
 </template>
 
 <script setup>
+import { useRoute, useRouter } from "vue-router";
 
-import { useRoute, useRouter } from 'vue-router';
-
-const router=useRouter();
-const route=useRoute();
+const router = useRouter();
+const route = useRoute();
 function goHome() {
   router.push("/");
 }

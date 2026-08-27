@@ -1,108 +1,131 @@
+import { apiRequest } from "./api";
 import { testAuth } from "./authApi";
 
-const USER_URL = "http://http://10.17.48.87:8082";
+const USER_URL = "http://10.17.48.87:8082/api/users";
 
-let mockUser = {
-  name: "Ravindran Logasanjeev",
-  email: "ravindran@example.com",
-  phone: "9876543210",
-};
+async function getUserId() {
+  const response = await testAuth();
 
-let mockAddresses = [
-  {
-    id: 1,
-    title: "Home",
-    street: "123 Tech Park Ave",
-    city: "Coimbatore",
-    zip: "641001",
-  },
-  {
-    id: 2,
-    title: "Office",
-    street: "456 Innovation St",
-    city: "Coimbatore",
-    zip: "641004",
-  },
-];
+  if (!response || typeof response !== "string") {
+    throw new Error("Invalid authentication response");
+  }
 
-let mockOrders = [
-  {
-    id: "ORD-9821",
-    date: "Aug 18, 2026",
-    status: "Delivered",
-    total: 129.99,
-    items: [
-      { name: "Wireless Headphones", qty: 1, price: 99.99 },
-      { name: "Protective Case", qty: 1, price: 30.0 },
-    ],
-  },
-  {
-    id: "ORD-9104",
-    date: "Jul 02, 2026",
-    status: "Processing",
-    total: 45.5,
-    items: [{ name: "USB-C Fast Charger", qty: 2, price: 22.75 }],
-  },
-];
+  const match = response.match(
+    /User:\s*([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/,
+  );
 
-const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms));
+  if (!match) {
+    throw new Error("Unable to extract user ID from auth response");
+  }
+
+  return match[1];
+}
 
 export const userApi = {
   async fetchProfile() {
-    const authenticated = await testAuth();
+    const userId = await getUserId();
 
-    if (!authenticated) {
-      return null;
-    }
-
-    return { ...mockUser };
+    return apiRequest(USER_URL, `/${userId}`);
   },
 
-  // async fetchAddresses() {
-  //   return await apiRequest(USER_URL, `/api/user/${}/addresses`, {
-  //     method: "POST",
-  //     body: {
-  //       email: credentials.email,
-  //       password: credentials.password,
-  //       role: "USER",
-  //     },
-  //   });
-  // },
+  async updateProfile(profileData) {
+    const userId = await getUserId();
 
-  async updateProfile(userData) {
-    await delay();
-    mockUser = { ...mockUser, ...userData };
-    return { ...mockUser };
-  },
-
-  async changePassword({ currentPassword, newPassword }) {
-    await delay();
-    if (currentPassword !== "password123") {
-      throw new Error("Incorrect current password");
-    }
-    return { success: true, message: "Password updated successfully" };
+    return apiRequest(USER_URL, `/${userId}`, {
+      method: "PATCH",
+      body: {
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+        phone: profileData.phone,
+      },
+    });
   },
 
   async fetchAddresses() {
-    await delay();
-    return [...mockAddresses];
+    const userId = await getUserId();
+
+    return apiRequest(USER_URL, `/${userId}/addresses`);
+  },
+
+  async fetchDefaultAddress() {
+    const userId = await getUserId();
+
+    return apiRequest(USER_URL, `/${userId}/addresses/default`);
+  },
+
+  async fetchAddress(addressId) {
+    const userId = await getUserId();
+
+    return apiRequest(USER_URL, `/${userId}/addresses/${addressId}`);
   },
 
   async addAddress(addressData) {
-    await delay();
-    const newAddr = { id: Date.now(), ...addressData };
-    mockAddresses.push(newAddr);
-    return newAddr;
+    const userId = await getUserId();
+
+    return apiRequest(USER_URL, `/${userId}/addresses`, {
+      method: "POST",
+      body: {
+        addressLine1: addressData.addressLine1,
+        addressLine2: addressData.addressLine2 || null,
+        city: addressData.city,
+        state: addressData.state,
+        country: addressData.country,
+        pincode: addressData.pincode,
+        isDefault: addressData.isDefault ?? false,
+      },
+    });
   },
 
-  async deleteAddress(id) {
-    await delay();
-    mockAddresses = mockAddresses.filter((addr) => addr.id !== id);
-    return id;
+  async updateAddress(addressId, addressData) {
+    const userId = await getUserId();
+
+    const body = {};
+
+    if (addressData.addressLine1 !== undefined) {
+      body.addressLine1 = addressData.addressLine1;
+    }
+
+    if (addressData.addressLine2 !== undefined) {
+      body.addressLine2 = addressData.addressLine2;
+    }
+
+    if (addressData.city !== undefined) {
+      body.city = addressData.city;
+    }
+
+    if (addressData.state !== undefined) {
+      body.state = addressData.state;
+    }
+
+    if (addressData.country !== undefined) {
+      body.country = addressData.country;
+    }
+
+    if (addressData.pincode !== undefined) {
+      body.pincode = addressData.pincode;
+    }
+
+    return apiRequest(USER_URL, `/${userId}/addresses/${addressId}`, {
+      method: "PATCH",
+      body,
+    });
   },
 
-  async fetchOrders() {
-    await delay();
-    return [...mockOrders];
+  async setDefaultAddress(addressId) {
+    const userId = await getUserId();
+
+    return apiRequest(USER_URL, `/${userId}/addresses/${addressId}/default`, {
+      method: "PATCH",
+    });
+  },
+
+  async deleteAddress(addressId) {
+    const userId = await getUserId();
+
+    await apiRequest(USER_URL, `/${userId}/addresses/${addressId}`, {
+      method: "DELETE",
+    });
+
+    return addressId;
   },
 };

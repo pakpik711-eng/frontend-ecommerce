@@ -1,6 +1,7 @@
 import { apiRequest } from "./api";
 
 const AUTH_URL = "http://localhost:8084";
+const AUTHERIZATION_URL = "http://10.17.48.83:8080";
 // const AUTH_URL = "http://10.17.48.85:8084";
 
 export function initiateGoogleAuth() {
@@ -31,16 +32,6 @@ export function logoutUser() {
   });
 }
 
-export async function testAuth() {
-  try {
-    await apiRequest(AUTH_URL, "/test/user");
-    return true;
-  } catch (err) {
-    if (err.response?.status == 401) {
-      console.log("Un authorized...");
-      return false;
-    }
-
-    throw err;
-  }
+export function testAuth() {
+  return apiRequest(AUTH_URL, "/test/user");
 }

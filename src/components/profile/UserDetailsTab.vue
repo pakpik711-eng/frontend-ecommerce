@@ -1,23 +1,43 @@
 <template>
   <div class="tab-content">
-    <h3>Personal Information</h3>
-    <p v-if="userStore.isLoading && !userStore.profile" class="status-msg">
-      Loading profile...
-    </p>
+    <h3>Profile Details</h3>
+
+    <p v-if="isLoadingProfile" class="status-msg">Loading profile...</p>
 
     <form v-else @submit.prevent="handleSave">
       <div class="form-group">
-        <label for="profileName">Full Name</label>
-        <input id="profileName" v-model="form.name" type="text" required />
+        <label for="profileFirstName"> First Name </label>
+
+        <input
+          id="profileFirstName"
+          v-model="form.firstName"
+          type="text"
+          placeholder="Enter your first name"
+          required
+        />
       </div>
 
       <div class="form-group">
-        <label for="profileEmail">Email Address</label>
-        <input id="profileEmail" v-model="form.email" type="email" required />
+        <label for="profileLastName"> Last Name </label>
+
+        <input
+          id="profileLastName"
+          v-model="form.lastName"
+          type="text"
+          placeholder="Enter your last name"
+          required
+        />
       </div>
 
       <div class="form-group">
-        <label for="profilePhone">Phone Number</label>
+        <label for="profileEmail"> Email </label>
+
+        <input id="profileEmail" v-model="form.email" type="email" disabled />
+      </div>
+
+      <div class="form-group">
+        <label for="profilePhone"> Phone Number </label>
+
         <input
           id="profilePhone"
           v-model="form.phone"
@@ -30,67 +50,127 @@
         Enter a valid 10-digit phone number
       </span>
 
+      <span v-if="apiError" class="error-msg">
+        {{ apiError }}
+      </span>
+
+      <span v-if="successMessage" class="success-msg">
+        {{ successMessage }}
+      </span>
+
       <BaseButton
-        :text="userStore.isLoading ? 'Saving...' : 'Save Changes'"
+        :text="isSaving ? 'Saving...' : 'Save Changes'"
         class="save-btn"
-        :disabled="!isPhoneValid || userStore.isLoading || !isDirty"
+        :disabled="!isPhoneValid || isSaving || !isDirty"
       />
     </form>
   </div>
 </template>
 
 <script setup>
-import { reactive, computed, onMounted } from "vue";
+import { reactive, computed, ref, onMounted } from "vue";
 import { useUserStore } from "@/stores/userStore";
+import { userApi } from "@/services/userApi";
 import BaseButton from "@/components/common/BaseButton.vue";
 
 const userStore = useUserStore();
 
 const form = reactive({
-  name: "",
+  firstName: "",
+  lastName: "",
   email: "",
   phone: "",
 });
 
+const isLoadingProfile = ref(false);
+const isSaving = ref(false);
+const apiError = ref("");
+const successMessage = ref("");
+
 const populateForm = () => {
-  if (userStore.profile) {
-    form.name = userStore.profile.name || "";
-    form.email = userStore.profile.email || "";
-    form.phone = userStore.profile.phone || "";
+  const profile = userStore.profile;
+
+  if (!profile) {
+    return;
   }
+
+  form.firstName = profile.firstName || "";
+  form.lastName = profile.lastName || "";
+  form.email = profile.email || "";
+  form.phone = profile.phone || "";
 };
 
-onMounted(async () => {
-  if (!userStore.profile) {
-    await userStore.loadProfile();
+const loadProfile = () => {
+  apiError.value = "";
+
+  if (userStore.profile) {
+    populateForm();
+    return Promise.resolve();
   }
-  populateForm();
-});
+
+  isLoadingProfile.value = true;
+
+  return userApi
+    .fetchProfile()
+    .then((profile) => {
+      userStore.setProfile(profile);
+      populateForm();
+    })
+    .catch((error) => {
+      apiError.value = error.message || "Failed to load profile";
+    })
+    .finally(() => {
+      isLoadingProfile.value = false;
+    });
+};
+
+onMounted(loadProfile);
 
 const isDirty = computed(() => {
-  if (!userStore.profile) return false;
+  if (!userStore.profile) {
+    return false;
+  }
 
   return (
-    form.name.trim() !== (userStore.profile.name || "") ||
-    form.email.trim() !== (userStore.profile.email || "") ||
+    form.firstName.trim() !== (userStore.profile.firstName || "") ||
+    form.lastName.trim() !== (userStore.profile.lastName || "") ||
     form.phone.trim() !== (userStore.profile.phone || "")
   );
 });
 
-const handleSave = async () => {
-  try {
-    await userStore.updateProfile({ ...form });
-    alert("Profile details updated successfully!");
-  } catch (err) {
-    alert(err || "Failed to update profile details.");
-  }
-};
-
 const phoneRegex = /^[6-9]\d{9}$/;
 
 const isPhoneValid = computed(() => {
-  return phoneRegex.test(form.phone);
+  return phoneRegex.test(form.phone.trim());
 });
+
+const handleSave = () => {
+  if (!isDirty.value || !isPhoneValid.value || isSaving.value) {
+    return;
+  }
+
+  apiError.value = "";
+  successMessage.value = "";
+  isSaving.value = true;
+
+  userApi
+    .updateProfile({
+      firstName: form.firstName.trim(),
+      lastName: form.lastName.trim(),
+      phone: form.phone.trim(),
+    })
+    .then((updatedProfile) => {
+      userStore.setProfile(updatedProfile);
+      populateForm();
+      successMessage.value = "Profile details updated successfully!";
+    })
+    .catch((error) => {
+      apiError.value = error.message || "Failed to update profile details.";
+    })
+    .finally(() => {
+      isSaving.value = false;
+    });
+};
 </script>
 
 <style scoped>
@@ -132,29 +212,29 @@ input:focus {
   border-color: #2563eb;
 }
 
+input:disabled {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
 .save-btn {
   margin-top: 0.5rem;
 }
 
-.save-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.error-msg,
+.success-msg {
+  display: block;
+  margin-top: 0.35rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.78rem;
 }
 
 .error-msg {
-  display: block;
-  margin-top: 0.35rem;
-  font-size: 0.78rem;
-  line-height: 1.2;
   color: #dc2626;
 }
 
-.input-error {
-  border-color: #dc2626;
-}
-
-.input-error:focus {
-  border-color: #dc2626;
-  outline: 2px solid rgba(220, 38, 38, 0.1);
+.success-msg {
+  color: #16a34a;
 }
 </style>

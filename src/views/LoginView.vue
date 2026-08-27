@@ -26,13 +26,20 @@
           placeholder="Enter password"
         />
 
-        <span v-if="loginError" class="error-msg">{{ loginError }}</span>
+        <span v-if="loginError" class="error-msg">
+          {{ loginError }}
+        </span>
 
-        <BaseButton text="Log In" class="submit-btn" />
+        <BaseButton
+          :text="isLoading ? 'Logging in...' : 'Log In'"
+          class="submit-btn"
+          :disabled="isLoading"
+        />
       </form>
 
       <p class="toggle-text">
         Don't have an account?
+
         <router-link
           :to="{
             name: 'Signup',
@@ -50,7 +57,10 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
+
 import { useAuthStore } from "@/stores/authStore";
+import { useUserStore } from "@/stores/userStore";
+import { userApi } from "@/services/userApi";
 
 import BaseButton from "@/components/common/BaseButton.vue";
 import GoogleAuthBtn from "@/components/auth/GoogleAuthBtn.vue";
@@ -59,35 +69,52 @@ import PasswordInput from "@/components/auth/PasswordInput.vue";
 
 const router = useRouter();
 const route = useRoute();
+
 const authStore = useAuthStore();
+const userStore = useUserStore();
 
 const email = ref("");
 const password = ref("");
+
 const loginError = ref("");
+const isLoading = ref(false);
 
 const handleGoogleAuth = () => {
   authStore.loginWithGoogle();
 };
 
-const handleLogin = async () => {
-  loginError.value = "";
+const getRedirectPath = () => {
+  const redirect = route.query.redirect;
 
-  try {
-    await authStore.login({
+  return typeof redirect === "string" ? redirect : "/";
+};
+
+const handleLogin = () => {
+  loginError.value = "";
+  isLoading.value = true;
+
+  authStore
+    .login({
       email: email.value,
       password: password.value,
+    })
+    .then(() =>
+      userApi
+        .fetchProfile()
+        .then((profile) => {
+          userStore.setProfile(profile);
+        })
+        .catch((error) => {
+          console.error("Failed to load user profile:", error);
+        }),
+    )
+    .then(() => router.replace(getRedirectPath()))
+    .catch((error) => {
+      loginError.value = error.message || "Failed to log in";
+    })
+    .finally(() => {
+      isLoading.value = false;
     });
-
-    const redirect = route.query.redirect;
-
-    if (redirect && typeof redirect === "string") {
-      await router.push(redirect);
-    } else {
-      await router.push({ name: "Home" });
-    }
-  } catch (err) {
-    loginError.value = err.message || "Failed to log in";
-  }
 };
 </script>
 

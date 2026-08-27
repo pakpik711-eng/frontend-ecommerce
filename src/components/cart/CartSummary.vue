@@ -2,8 +2,8 @@
   <div class="cart-summary">
     <h2>Order Summary</h2>
     <div class="summary-row">
-        <span>Subtotal</span>
-        <span>₹{{ (total || 0).toLocaleString("en-IN") }}</span>
+      <span>Subtotal</span>
+      <span>₹{{ (total || 0).toLocaleString("en-IN") }}</span>
     </div>
     <p v-if="error" class="error">{{ error }}</p>
       <div v-if="actionError">{{ actionError }}</div>
@@ -22,11 +22,11 @@ import { useRouter } from 'vue-router';
 import { validateCart } from '@/services/cartApi';
 
 defineProps({
-    total:{
-        type:Number,
-        required:true
-    }
-})
+  total: {
+    type: Number,
+    required: true,
+  },
+});
 
 const router = useRouter();
 const loading = ref(false);
@@ -48,7 +48,6 @@ function handleBuyNow(){
       loading.value = false;
     });
 }
-
 </script>
 
 <style scoped>

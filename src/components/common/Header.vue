@@ -123,38 +123,80 @@
 
 <script setup>
 import { ref, onMounted, watch } from "vue";
+
 import { useRouter } from "vue-router";
 
 import SearchBar from "./SearchBar.vue";
 import BaseButton from "./BaseButton.vue";
 
-import { useAuthStore } from "../../stores/authStore.js";
-import { useUserStore } from "@/stores/userStore.js";
-import { useCartStore } from "@/stores/cartStore.js";
+import { useAuthStore } from "@/stores/authStore";
+import { useUserStore } from "@/stores/userStore";
+import { useCartStore } from "@/stores/cartStore";
+import { userApi } from "@/services/userApi";
 
 const router = useRouter();
+
 const authStore = useAuthStore();
 const userStore = useUserStore();
 const cartStore = useCartStore();
 
 const isMenuOpen = ref(false);
 
-const handleLogout = async () => {
+const handleLogout = () => {
   isMenuOpen.value = false;
-  await authStore.logout();
-  cartStore.clearCartCount();
-  await router.push("/login");
+
+  authStore
+    .logout()
+    .then(() => {
+      userStore.clearProfile();
+
+      cartStore.clearCartCount();
+      cartStore.cartItems = [];
+      cartStore.totalPrice = 0;
+
+      return router.push("/login");
+    })
+    .catch((error) => {
+      userStore.clearProfile();
+
+      cartStore.clearCartCount();
+      cartStore.cartItems = [];
+      cartStore.totalPrice = 0;
+
+      console.error("Logout failed:", error);
+
+      return router.push("/login");
+    });
 };
 
-async function fetchCartItems() {
+const fetchUserProfile = () => {
+  if (!authStore.isAuthenticated || userStore.profile) {
+    return;
+  }
+
+  userApi
+    .fetchProfile()
+    .then((profile) => {
+      userStore.setProfile(profile);
+    })
+    .catch((error) => {
+      console.error("Failed to load user profile:", error);
+    });
+};
+
+const fetchCartItems = () => {
   if (!authStore.isAuthenticated) {
     cartStore.clearCartCount();
     return;
   }
-  await cartStore.fetchCart();
-}
+
+  cartStore.fetchCart().catch((error) => {
+    console.error("Failed to load cart:", error);
+  });
+};
 
 onMounted(() => {
+  fetchUserProfile();
   fetchCartItems();
 });
 
@@ -162,8 +204,10 @@ watch(
   () => authStore.isAuthenticated,
   (isAuthenticated) => {
     if (isAuthenticated) {
+      fetchUserProfile();
       fetchCartItems();
     } else {
+      userStore.clearProfile();
       cartStore.clearCartCount();
     }
   },

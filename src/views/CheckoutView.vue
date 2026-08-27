@@ -20,9 +20,7 @@
         <CheckoutSummary :subtotal="checkoutSubtotal" />
         <button
           class="place-order"
-          :disabled="
-            placingOrder || !selectedAddress || !paymentMethod
-          "
+          :disabled="placingOrder || !selectedAddress || !paymentMethod"
           @click="handlePlaceOrder"
         >
           {{ placingOrder ? "Placing Order..." : "Place Order" }}
@@ -38,7 +36,6 @@
 </template>
 
 <script setup>
-import Header from "@/components/common/Header.vue";
 import CheckoutAddress from "@/components/checkout/CheckoutAddress.vue";
 import CheckoutItems from "@/components/checkout/CheckoutItems.vue";
 import CheckoutSummary from "@/components/checkout/CheckoutSummary.vue";
@@ -53,6 +50,7 @@ import { computed, onMounted, onUnmounted, ref } from "vue";
 const router = useRouter();
 const cartStore = useCartStore();
 const userStore = useUserStore();
+const cartStore = useCartStore();
 const selectedAddress = ref(null);
 const paymentMethod = ref("COD");
 const showAddressModal = ref(false);
