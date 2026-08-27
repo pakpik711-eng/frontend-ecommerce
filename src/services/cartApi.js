@@ -1,50 +1,44 @@
 import { apiRequest } from "./api";
- 
-const CART_URL = "http://10.17.48.83:8080";
-const u_id = "550e8400-e29b-41d4-a716-446655440000";
+
+
 
 export function getCartCount() {
-  return apiRequest(CART_URL, `/api/cart/${u_id}/count`);
+  return apiRequest("/api/cart/count");
 }
 
 export function getCart() {
-  return apiRequest(CART_URL, `/api/cart/${u_id}`);
+  return apiRequest("/api/cart");
 }
 
-export function addCartItem(cartItems) {
-  return apiRequest(CART_URL, `/api/cart/${u_id}/items`, {
-    method: "POST",
-    body: cartItems,
-  });
-}
-
-export function updateCartItemQuantity(cartItemId, quantity) {
-  return apiRequest(CART_URL, `/api/cart/${u_id}/items/${cartItemId}`, {
-    method: "PATCH",
-    body: {quantity},
-  });
-}
-
-export function removeItemCartItem(cartItemId) {
-  return apiRequest(CART_URL, `/api/cart/${u_id}/items/${cartItemId}`, {
-    method: "DELETE",
-  });
-}
-
-export function validateCart() {
-  return apiRequest(CART_URL,`/api/cart/${u_id}/validate`, {
-    method: "POST",
-  });
-}
- export function buyNow(item) {
-  return apiRequest(CART_URL, `/api/cart/${u_id}/buy-now`, {
+export function addCartItem(item) {
+  return apiRequest("/api/cart/items", {
     method: "POST",
     body: item,
   });
 }
 
-export function checkoutItem(cartItemId) {
-  return apiRequest(CART_URL, `/api/cart/${u_id}/checkout/${cartItemId}`, {
+export function updateCartItemQuantity(cartItemId, quantity) {
+  return apiRequest(`/api/cart/items/${cartItemId}`, {
+    method: "PATCH",
+    body: { quantity },
+  });
+}
+
+export function removeItemCartItem(cartItemId) {
+  return apiRequest(`/api/cart/items/${cartItemId}`, {
+    method: "DELETE",
+  });
+}
+
+export function validateCart() {
+  return apiRequest("/api/cart/validate", {
     method: "POST",
+  });
+}
+
+export function buyNow(item) {
+  return apiRequest("/api/cart/buy-now", {
+    method: "POST",
+    body: item,
   });
 }

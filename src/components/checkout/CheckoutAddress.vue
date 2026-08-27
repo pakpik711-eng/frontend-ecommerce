@@ -4,6 +4,9 @@
       <h2>Delivery Address</h2>
       <button @click="$emit('add-address')">+ Add Address</button>
     </div>
+    <div v-if="!addresses.length" class="no-addresses">
+      No saved addresses yet - add one to continue.
+    </div>
     <div v-for="address in addresses" :key="address.id" class="address-card">
       <label>
         <input
@@ -13,10 +16,13 @@
           :checked="selectedAddress === address.id"
           @change="$emit('select', address.id)"
         />
-        <strong>{{ address.title }}</strong>
+        <strong v-if="address.isDefault">Default</strong>
+        <strong v-else>Address</strong>
       </label>
-      <p>{{ address.street }}</p>
-      <p>{{ address.city }}, {{ address.zip }}</p>
+      <p>{{ address.addressLine1 }}</p>
+      <p v-if="address.addressLine2">{{ address.addressLine2 }}</p>
+      <p>{{ address.city }}, {{ address.state }}</p>
+      <p>{{ address.country }} - {{ address.pincode }}</p>
     </div>
   </div>
 </template>
@@ -28,13 +34,13 @@ defineProps({
     required: true,
   },
   selectedAddress: {
-    type: [Number, String],
+    type: String,
     default: null,
   },
 });
 defineEmits(["select", "add-address"]);
-
-</script><style scoped>
+</script>
+<style scoped>
 .address-section {
   background: var(--color-surface);
   border: 0.5px solid var(--color-text-main);
@@ -61,6 +67,12 @@ defineEmits(["select", "add-address"]);
   font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
+}
+
+.no-addresses {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  padding: 0.5rem 0;
 }
 
 .address-card {

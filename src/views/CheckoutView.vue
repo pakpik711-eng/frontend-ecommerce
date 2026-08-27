@@ -17,10 +17,10 @@
         <CheckoutItems :items="checkoutItems" />
       </section>
       <aside>
-        <CheckoutSummary :subtotal="checkoutSubtotal" />
+        <CheckoutSummary :total="checkoutTotal" />
         <button
           class="place-order"
-          :disabled="placingOrder || !selectedAddress || !paymentMethod"
+          :disabled="placingOrder || !selectedAddress"
           @click="handlePlaceOrder"
         >
           {{ placingOrder ? "Placing Order..." : "Place Order" }}
@@ -41,16 +41,16 @@ import CheckoutItems from "@/components/checkout/CheckoutItems.vue";
 import CheckoutSummary from "@/components/checkout/CheckoutSummary.vue";
 import PaymentMethod from "@/components/checkout/PaymentMethod.vue";
 import AddressModal from "@/components/checkout/AddressModal.vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useCartStore } from "@/stores/cartStore";
 import { useUserStore } from "@/stores/userStore";
-import { placeOrder } from "@/services/checkoutApi";
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { checkoutCart, checkoutCartItem } from "@/services/checkoutApi";
+import { computed, onMounted, ref } from "vue";
 
 const router = useRouter();
+const route = useRoute();
 const cartStore = useCartStore();
 const userStore = useUserStore();
-const cartStore = useCartStore();
 const selectedAddress = ref(null);
 const paymentMethod = ref("COD");
 const showAddressModal = ref(false);
@@ -58,27 +58,38 @@ const showAddressModal = ref(false);
 const placingOrder = ref(false);
 const error = ref(null);
 
+
+const buyNowItemId = computed(() => route.query.buyNow || null);
+
 const checkoutItems = computed(() => {
-  if (cartStore.buyNowItemId) {
+  if (buyNowItemId.value) {
     return cartStore.cartItems.filter(
-      (item) => item.cartItemId === cartStore.buyNowItemId,
+      (item) => item.cartItemId === buyNowItemId.value,
     );
   }
   return cartStore.cartItems;
 });
 
-const checkoutSubtotal = computed(() =>
-  checkoutItems.value.reduce((sum, item) => sum + (item.lineTotal || 0), 0),
-);
+const checkoutTotal = computed(() => {
+  if (buyNowItemId.value) {
+    
+    return checkoutItems.value[0]?.lineTotal || 0;
+  }
 
-onMounted(() => {
-  userStore.loadAddresses().then(() => {
-    cartStore.fetchCart();
-  });
+ 
+  return cartStore.totalPrice || 0;
 });
 
-onUnmounted(() => {
-  cartStore.clearBuyNowItem();
+onMounted(() => {
+  userStore.loadAddresses().then((addresses) => {
+    const defaultAddress = addresses.find((address) => address.isDefault);
+
+    if (defaultAddress) {
+      selectedAddress.value = defaultAddress.id;
+    }
+
+    return cartStore.fetchCart();
+  });
 });
 
 function handleAddAddress(addressData) {
@@ -92,29 +103,36 @@ function handlePlaceOrder() {
     error.value = "Please select a delivery address";
     return;
   }
-  if (!paymentMethod.value) {
-    error.value = "Please select a payment method";
-    return;
-  }
 
   placingOrder.value = true;
   error.value = null;
 
-  const orderData = {
-    addressId: selectedAddress.value,
-    paymentMethod: paymentMethod.value,
-  };
+  const address = userStore.addresses.find(
+    (a) => a.id === selectedAddress.value,
+  );
 
-  if (cartStore.buyNowItemId) {
-    orderData.cartItemId = cartStore.buyNowItemId;
-  }
+  const customAddress =
+    address && !address.isDefault
+      ? {
+          addressLine1: address.addressLine1,
+          addressLine2: address.addressLine2,
+          city: address.city,
+          state: address.state,
+          country: address.country,
+          pincode: address.pincode,
+        }
+      : undefined;
 
-  return placeOrder(orderData)
+  const checkout = buyNowItemId.value
+    ? checkoutCartItem(buyNowItemId.value, customAddress)
+    : checkoutCart(customAddress);
+
+  return checkout
     .then((order) => {
       router.push({
         name: "OrderSuccess",
         query: {
-          orderId: order.id,
+          orderId: order.orderId,
         },
       });
     })

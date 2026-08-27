@@ -7,7 +7,7 @@
 
 <script setup>
 import ProductGrid from "@/components/products/ProductGrid.vue";
-import { useInfinitePagination } from "@/composables/ useInfinitePagination";
+import { useInfinitePagination } from "@/composables/useInfinitePagination";
 import { getProducts } from "@/services/productApi";
 import { onMounted, ref } from "vue";
 

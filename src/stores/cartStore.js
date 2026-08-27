@@ -1,4 +1,11 @@
-import {addCartItem,getCart,getCartCount,removeItemCartItem,updateCartItemQuantity} from "@/services/cartApi";
+import {
+  addCartItem,
+  buyNow as buyNowApi,
+  getCart,
+  getCartCount,
+  removeItemCartItem,
+  updateCartItemQuantity,
+} from "@/services/cartApi";
 
 import { defineStore } from "pinia";
 import { ref } from "vue";
@@ -10,36 +17,33 @@ export const useCartStore = defineStore("cart", () => {
   const actionError = ref(null);
   const totalPrice = ref(0);
   const cartCount = ref(0);
-  const buyNowItemId = ref(null);
 
-  function setBuyNowItem(cartItemId) {
-    buyNowItemId.value = cartItemId;
-  }
 
-  function clearBuyNowItem() {
-    buyNowItemId.value = null;
+  function applyCartSnapshot(cartResponse) {
+    cartItems.value = cartResponse.items || [];
+    totalPrice.value = cartResponse.totalPrice;
+    cartCount.value = cartItems.value.length;
   }
 
   function fetchCartCount() {
     return getCartCount()
       .then((response) => {
-        cartCount.value = response.count;
+       
+        cartCount.value = response.distinctItemCount;
       })
       .catch((err) => {
         cartCount.value = 0;
         console.error("Failed to fetch cart count:", err);
       });
   }
-   
+
   function fetchCart() {
     loading.value = true;
     error.value = null;
 
     return getCart()
       .then((response) => {
-        cartItems.value = response.items;
-        totalPrice.value = response.totalPrice;
-        cartCount.value = response.items.length;
+        applyCartSnapshot(response);
       })
       .catch((err) => {
         error.value = "Failed to Load cart";
@@ -56,14 +60,52 @@ export const useCartStore = defineStore("cart", () => {
 
     return addCartItem(item)
       .then((response) => {
-        cartItems.value.push(response.item);
-        totalPrice.value = response.totalPrice;
-        cartCount.value = cartItems.value.length;
+        applyCartSnapshot(response);
         return response;
       })
       .catch((err) => {
         actionError.value = err;
         console.error("Failed to add cart item:", err);
+        throw err;
+      })
+      .finally(() => {
+        loading.value = false;
+      });
+  }
+
+ 
+  function buyNow(item) {
+    loading.value = true;
+    actionError.value = null;
+
+    return buyNowApi(item)
+      .then((response) => {
+       
+        if (response.items) {
+          applyCartSnapshot(response);
+        }
+
+        const cartItemId =
+          response.cartItemId ||
+          response.items?.find(
+            (cartItem) =>
+              cartItem.variantId === item.variantId &&
+              cartItem.merchantId === item.merchantId,
+          )?.cartItemId;
+
+        if (!cartItemId) {
+          throw new Error("Buy Now did not return a cart item");
+        }
+
+        if (!response.items) {
+          return fetchCart().then(() => cartItemId);
+        }
+
+        return cartItemId;
+      })
+      .catch((err) => {
+        actionError.value = err;
+        console.error("Failed to buy now:", err);
         throw err;
       })
       .finally(() => {
@@ -101,13 +143,14 @@ export const useCartStore = defineStore("cart", () => {
 
     return updateCartItemQuantity(cartItemId, quantity)
       .then((response) => {
+       
         const index = cartItems.value.findIndex(
           (item) => item.cartItemId === cartItemId,
         );
 
         if (index !== -1) {
           cartItems.value[index].quantity = response.quantity;
-          cartItems.value[index].price = response.lineTotal;
+          cartItems.value[index].lineTotal = response.lineTotal;
         }
 
         totalPrice.value = response.cartTotalPrice;
@@ -123,11 +166,9 @@ export const useCartStore = defineStore("cart", () => {
     actionError.value = null;
 
     return removeItemCartItem(cartItemId)
-      .then(() => {
-        cartItems.value = cartItems.value.filter(
-          (item) => item.cartItemId !== cartItemId,
-        );
-        cartCount.value = cartItems.value.length;
+      .then((response) => {
+      
+        applyCartSnapshot(response);
       })
       .catch((err) => {
         actionError.value = "Unable to remove item";
@@ -147,7 +188,6 @@ export const useCartStore = defineStore("cart", () => {
     actionError,
     totalPrice,
     cartCount,
-    buyNowItemId,
 
     fetchCart,
     fetchCartCount,
@@ -158,9 +198,7 @@ export const useCartStore = defineStore("cart", () => {
 
     removeItem,
     addItem,
-
-    setBuyNowItem,
-    clearBuyNowItem,
+    buyNow,
 
     clearCartCount,
   };

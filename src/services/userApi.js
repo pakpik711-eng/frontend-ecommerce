@@ -1,37 +1,17 @@
 import { apiRequest } from "./api";
-import { testAuth } from "./authApi";
-
-const USER_URL = "http://10.17.48.87:8082/api/users";
-
-async function getUserId() {
-  const response = await testAuth();
-
-  if (!response || typeof response !== "string") {
-    throw new Error("Invalid authentication response");
-  }
-
-  const match = response.match(
-    /User:\s*([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/,
-  );
-
-  if (!match) {
-    throw new Error("Unable to extract user ID from auth response");
-  }
-
-  return match[1];
-}
+import { getCurrentUserId } from "./session";
 
 export const userApi = {
   async fetchProfile() {
-    const userId = await getUserId();
+    const userId = getCurrentUserId();
 
-    return apiRequest(USER_URL, `/${userId}`);
+    return apiRequest(`/api/users/${userId}`);
   },
 
   async updateProfile(profileData) {
-    const userId = await getUserId();
+    const userId = getCurrentUserId();
 
-    return apiRequest(USER_URL, `/${userId}`, {
+    return apiRequest(`/api/users/${userId}`, {
       method: "PATCH",
       body: {
         firstName: profileData.firstName,
@@ -42,27 +22,27 @@ export const userApi = {
   },
 
   async fetchAddresses() {
-    const userId = await getUserId();
+    const userId = getCurrentUserId();
 
-    return apiRequest(USER_URL, `/${userId}/addresses`);
+    return apiRequest(`/api/users/${userId}/addresses`);
   },
 
   async fetchDefaultAddress() {
-    const userId = await getUserId();
+    const userId = getCurrentUserId();
 
-    return apiRequest(USER_URL, `/${userId}/addresses/default`);
+    return apiRequest(`/api/users/${userId}/addresses/default`);
   },
 
   async fetchAddress(addressId) {
-    const userId = await getUserId();
+    const userId = getCurrentUserId();
 
-    return apiRequest(USER_URL, `/${userId}/addresses/${addressId}`);
+    return apiRequest(`/api/users/${userId}/addresses/${addressId}`);
   },
 
   async addAddress(addressData) {
-    const userId = await getUserId();
+    const userId = getCurrentUserId();
 
-    return apiRequest(USER_URL, `/${userId}/addresses`, {
+    return apiRequest(`/api/users/${userId}/addresses`, {
       method: "POST",
       body: {
         addressLine1: addressData.addressLine1,
@@ -77,7 +57,7 @@ export const userApi = {
   },
 
   async updateAddress(addressId, addressData) {
-    const userId = await getUserId();
+    const userId = getCurrentUserId();
 
     const body = {};
 
@@ -105,24 +85,24 @@ export const userApi = {
       body.pincode = addressData.pincode;
     }
 
-    return apiRequest(USER_URL, `/${userId}/addresses/${addressId}`, {
+    return apiRequest(`/api/users/${userId}/addresses/${addressId}`, {
       method: "PATCH",
       body,
     });
   },
 
   async setDefaultAddress(addressId) {
-    const userId = await getUserId();
+    const userId = getCurrentUserId();
 
-    return apiRequest(USER_URL, `/${userId}/addresses/${addressId}/default`, {
+    return apiRequest(`/api/users/${userId}/addresses/${addressId}/default`, {
       method: "PATCH",
     });
   },
 
   async deleteAddress(addressId) {
-    const userId = await getUserId();
+    const userId = getCurrentUserId();
 
-    await apiRequest(USER_URL, `/${userId}/addresses/${addressId}`, {
+    await apiRequest(`/api/users/${userId}/addresses/${addressId}`, {
       method: "DELETE",
     });
 

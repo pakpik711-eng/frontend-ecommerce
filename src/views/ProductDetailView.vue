@@ -135,23 +135,72 @@
           </div>
         </div>
       </section>
+
       <section class="reviews">
         <h2>Customer Reviews</h2>
-        <p>Reviews will come from the Review Service.</p>
+
+        <div v-if="reviewsLoading" class="reviews-status">
+          Loading reviews...
+        </div>
+
+        <div v-else-if="reviewsError" class="error">
+          {{ reviewsError }}
+        </div>
+
+        <div v-else-if="!reviews.length" class="reviews-status">
+          No reviews yet for this product.
+        </div>
+
+        <template v-else>
+          <div class="reviews-summary">
+            <span class="avg-rating">
+              ⭐ {{ reviewsSummary.averageRating.toFixed(1) }}
+            </span>
+            <span class="review-count">
+              ({{ reviewsSummary.totalCount }}
+              {{ reviewsSummary.totalCount === 1 ? "review" : "reviews" }})
+            </span>
+          </div>
+
+          <div
+            v-for="review in reviews"
+            :key="review.reviewId"
+            class="review-card"
+          >
+            <div class="review-stars">
+              <span
+                v-for="n in 5"
+                :key="n"
+                :class="{ filled: n <= review.rating }"
+                >★</span
+              >
+            </div>
+            <p class="review-text">{{ review.reviewText }}</p>
+            <span class="review-date">{{
+              formatReviewDate(review.createdAt)
+            }}</span>
+          </div>
+        </template>
       </section>
     </template>
   </main>
 </template>
 <script setup>
 import { useCartStore } from "@/stores/cartStore";
-import { getProductDetail, getProductVariant } from "@/services/productApi";
-import { computed, onMounted, reactive, ref } from "vue";
+import { useAuthStore } from "@/stores/authStore";
+import {
+  getProductDetail,
+  getProductDetailsForCart,
+  getProductVariant,
+} from "@/services/productApi";
+import { reviewApi } from "@/services/reviewApi";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 const router = useRouter();
 const route = useRoute();
 const cartStore = useCartStore();
-const addedToCart = ref(false);
+const authStore = useAuthStore();
 
 const loading = ref(false);
 const pageError = ref(null);
@@ -168,12 +217,31 @@ const selectedAttributes = reactive({});
 const activeImage = ref(null);
 const quantity = ref(1);
 
+const reviews = ref([]);
+const reviewsLoading = ref(false);
+const reviewsError = ref(null);
+const reviewsSummary = ref({ totalCount: 0, averageRating: 0 });
+
 const mainImage = computed(
   () =>
     activeImage.value ||
     product.value?.thumbnail ||
     selectedVariant.value?.images?.[0],
 );
+
+
+const addedToCart = computed(() => {
+  if (!product.value || !selectedVariant.value || !selectedMerchant.value) {
+    return false;
+  }
+
+  return cartStore.cartItems.some(
+    (item) =>
+      item.productId === product.value.productId &&
+      item.variantId === selectedVariant.value.variantId &&
+      item.merchantId === selectedMerchant.value.merchantId,
+  );
+});
 
 function selectImage(image) {
   activeImage.value = image;
@@ -191,9 +259,38 @@ function decreaseQty() {
   }
 }
 
+function loadReviews() {
+  if (!selectedVariant.value || !selectedMerchant.value) {
+    return Promise.resolve();
+  }
+
+  reviewsLoading.value = true;
+  reviewsError.value = null;
+
+  return reviewApi
+    .getVariantReviews(
+      selectedVariant.value.variantId,
+      selectedMerchant.value.merchantId,
+    )
+    .then((response) => {
+      reviews.value = response.reviews || [];
+      reviewsSummary.value = {
+        totalCount: response.totalCount || 0,
+        averageRating: response.averageRating || 0,
+      };
+    })
+    .catch((err) => {
+      reviewsError.value = err.message || "Failed to load reviews";
+    })
+    .finally(() => {
+      reviewsLoading.value = false;
+    });
+}
+
 function loadProduct() {
   const productId = route.params.productId;
-  const merchantId = route.query.merchant;
+  const variantId = route.params.variantId;
+  const merchantId = route.query.m_id;
 
   if (!productId) {
     return Promise.resolve();
@@ -201,7 +298,13 @@ function loadProduct() {
 
   loading.value = true;
   pageError.value = null;
-  return getProductDetail(productId)
+
+
+  const request = variantId
+    ? getProductDetailsForCart(productId, variantId)
+    : getProductDetail(productId);
+
+  return request
     .then((response) => {
       product.value = {
         productId: response.productId,
@@ -232,6 +335,8 @@ function loadProduct() {
 
       activeImage.value = null;
       quantity.value = 1;
+
+      return loadReviews();
     })
     .catch((err) => {
       pageError.value = err.message || "Failed to load product";
@@ -261,19 +366,20 @@ function changeAttribute(attributeName, value) {
 
       activeImage.value = null;
       quantity.value = 1;
-      addedToCart.value = false;
 
-      return router.replace({
-        name: "ProductDetail",
-        params: {
-          productId: route.params.productId,
-        },
-        query: {
-          ...Object.fromEntries(
-            Object.entries(route.query).filter(([key]) => key !== "merchant"),
-          ),
-        },
-      });
+      return router
+        .replace({
+          name: "ProductDetail",
+          params: {
+            productId: route.params.productId,
+          },
+          query: {
+            ...Object.fromEntries(
+              Object.entries(route.query).filter(([key]) => key !== "m_id"),
+            ),
+          },
+        })
+        .then(() => loadReviews());
     })
     .catch((err) => {
       selectedAttributes[attributeName] = previousValue;
@@ -285,29 +391,56 @@ function changeAttribute(attributeName, value) {
     });
 }
 
-
 function selectMerchant(merchant) {
   selectedMerchant.value = merchant;
   quantity.value = 1;
-  addedToCart.value = false;
 
-  return router.replace({
-    name: "ProductDetail",
-    params: {
-      productId: route.params.productId,
-    },
-    query: {
-      ...route.query,
-      merchant: merchant.merchantId,
-    },
-  });
+  return router
+    .replace({
+      name: "ProductDetail",
+      params: {
+        productId: route.params.productId,
+      },
+      query: {
+        ...route.query,
+        m_id: merchant.merchantId,
+      },
+    })
+    .then(() => loadReviews());
 }
 
 function formatPrice(price) {
   const value = Number(price);
   return Number.isFinite(value) ? value.toLocaleString("en-IN") : "0";
 }
+
+function formatReviewDate(date) {
+  if (!date) {
+    return "";
+  }
+
+  return new Date(date).toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+
+function requireAuthOrRedirect() {
+  if (authStore.isAuthenticated) {
+    return true;
+  }
+
+  router.push({ name: "Login", query: { redirect: route.fullPath } });
+  return false;
+}
+
 function addToCart() {
+  if (!requireAuthOrRedirect()) {
+    return Promise.resolve();
+  }
+
   if (!selectedMerchant.value) {
     return Promise.resolve();
   }
@@ -320,9 +453,6 @@ function addToCart() {
       variantId: selectedVariant.value.variantId,
       merchantId: selectedMerchant.value.merchantId,
       quantity: quantity.value,
-    })
-    .then(() => {
-      addedToCart.value = true;
     })
     .catch((err) => {
       actionError.value = err.message || "Unable to add item to cart";
@@ -331,6 +461,10 @@ function addToCart() {
 }
 
 function buyNow() {
+  if (!requireAuthOrRedirect()) {
+    return Promise.resolve();
+  }
+
   if (!selectedMerchant.value) {
     return Promise.resolve();
   }
@@ -338,15 +472,14 @@ function buyNow() {
   actionError.value = null;
 
   return cartStore
-    .addItem({
+    .buyNow({
       productId: product.value.productId,
       variantId: selectedVariant.value.variantId,
       merchantId: selectedMerchant.value.merchantId,
       quantity: quantity.value,
     })
-    .then((response) => {
-      cartStore.setBuyNowItem(response.item.cartItemId);
-      router.push({ name: "Checkout" });
+    .then((cartItemId) => {
+      router.push({ name: "Checkout", query: { buyNow: cartItemId } });
     })
     .catch((err) => {
       actionError.value = err.message || "Unable to proceed to checkout";
@@ -360,7 +493,21 @@ function formatAttributeName(value) {
     .replace(/^./, (char) => char.toUpperCase());
 }
 
-onMounted(loadProduct);
+onMounted(() => {
+  if (authStore.isAuthenticated) {
+    cartStore.fetchCart();
+  }
+
+  loadProduct();
+});
+
+
+watch(
+  () => [route.params.productId, route.params.variantId],
+  () => {
+    loadProduct();
+  },
+);
 </script>
 
 <style scoped>
@@ -453,19 +600,6 @@ onMounted(loadProduct);
   color: var(--color-text-main);
   line-height: 1.25;
   margin-bottom: -0.5rem;
-}
-
-.product-rating {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #b45309;
-  background: #fff7e6;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.25rem 0.7rem;
-  border-radius: var(--radius-pill);
-  width: fit-content;
 }
 
 .description {
@@ -710,13 +844,60 @@ onMounted(loadProduct);
   margin-top: 2.5rem;
 }
 
-.reviews p {
+.reviews-status {
   background: var(--color-surface);
   padding: 1.5rem;
   border-radius: var(--radius-md);
   color: var(--color-text-muted);
   text-align: center;
   border: 1px dashed var(--color-border);
+}
+
+.reviews-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.avg-rating {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
+.review-count {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.review-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.review-stars {
+  color: var(--color-border);
+  font-size: 1rem;
+  letter-spacing: 2px;
+}
+
+.review-stars .filled {
+  color: #f59e0b;
+}
+
+.review-text {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  color: var(--color-text-main);
+}
+
+.review-date {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
 }
 
 @media (max-width: 768px) {

@@ -1,28 +1,16 @@
 import { apiRequest } from "./api";
-import { testAuth } from "./authApi";
-
-const REVIEW_URL = "http://10.17.48.70:8082/api/reviews";
-
-async function getUserId() {
-  const response = await testAuth();
-
-  if (!response || !response.user_id) {
-    throw new Error("Unable to get authenticated user ID");
-  }
-
-  return response.user_id;
-}
+import { getCurrentUserId } from "./session";
 
 async function createReview(merchantId, variantId, reviewData) {
-  const userId = await getUserId();
+  const userId = getCurrentUserId();
 
-  return apiRequest(REVIEW_URL, `/${userId}/${merchantId}/${variantId}`, {
+  return apiRequest(`/api/reviews/${userId}/${merchantId}/${variantId}`, {
     method: "POST",
     body: {
       rating: reviewData.rating,
       reviewText: reviewData.reviewText,
     },
-  });
+  }).then((response) => response.data);
 }
 
 async function getVariantReviews(
@@ -40,7 +28,9 @@ async function getVariantReviews(
   params.append("page", page);
   params.append("size", size);
 
-  return apiRequest(REVIEW_URL, `/variant/${variantId}?${params.toString()}`);
+  return apiRequest(
+    `/api/reviews/variant/${variantId}?${params.toString()}`,
+  ).then((response) => response.data);
 }
 
 async function getUserReviews(userId, page = 0, size = 10) {
@@ -49,43 +39,46 @@ async function getUserReviews(userId, page = 0, size = 10) {
     size: String(size),
   });
 
-  return apiRequest(REVIEW_URL, `/user/${userId}?${params.toString()}`);
+  return apiRequest(`/api/reviews/user/${userId}?${params.toString()}`).then(
+    (response) => response.data,
+  );
 }
 
 async function getMyReviews(page = 0, size = 10) {
-  const userId = await getUserId();
+  const userId = getCurrentUserId();
 
   return getUserReviews(userId, page, size);
 }
 
 async function getReview(merchantId, variantId) {
-  const userId = await getUserId();
+  const userId = getCurrentUserId();
 
-  return apiRequest(REVIEW_URL, `/${userId}/${merchantId}/${variantId}`);
+  return apiRequest(`/api/reviews/${userId}/${merchantId}/${variantId}`).then(
+    (response) => response.data,
+  );
 }
 
 async function updateReview(merchantId, variantId, reviewData) {
-  const userId = await getUserId();
+  const userId = getCurrentUserId();
 
-  return apiRequest(REVIEW_URL, `/${userId}/${merchantId}/${variantId}`, {
+  return apiRequest(`/api/reviews/${userId}/${merchantId}/${variantId}`, {
     method: "PUT",
     body: {
       rating: reviewData.rating,
       reviewText: reviewData.reviewText,
     },
-  });
+  }).then((response) => response.data);
 }
 
 async function deleteReview(reviewId) {
-  const userId = await getUserId();
+  const userId = getCurrentUserId();
 
   return apiRequest(
-    REVIEW_URL,
-    `/${reviewId}?userId=${encodeURIComponent(userId)}`,
+    `/api/reviews/${reviewId}?userId=${encodeURIComponent(userId)}`,
     {
       method: "DELETE",
     },
-  );
+  ).then((response) => response.data);
 }
 
 export const reviewApi = {

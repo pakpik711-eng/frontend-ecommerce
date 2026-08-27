@@ -5,19 +5,18 @@
         <h2>Add Address</h2>
         <form @submit.prevent="submitAddress">
           <div class="field">
-            <label>Address Title</label>
+            <label>Address Line 1</label>
             <input
-              v-model="form.title"
-              placeholder="e.g. Home, Office"
+              v-model="form.addressLine1"
+              placeholder="Street address"
               required
             />
           </div>
           <div class="field">
-            <label>Street</label>
+            <label>Address Line 2 (optional)</label>
             <input
-              v-model="form.street"
-              placeholder="Street address"
-              required
+              v-model="form.addressLine2"
+              placeholder="Apartment, suite, etc."
             />
           </div>
           <div class="field-row">
@@ -26,18 +25,32 @@
               <input v-model="form.city" placeholder="City" required />
             </div>
             <div class="field">
-              <label>ZIP Code</label>
+              <label>State</label>
+              <input v-model="form.state" placeholder="State" required />
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Country</label>
+              <input v-model="form.country" placeholder="Country" required />
+            </div>
+            <div class="field">
+              <label>Pincode</label>
               <input
-                v-model="form.zip"
-                placeholder="ZIP Code"
+                v-model="form.pincode"
+                placeholder="Pincode"
                 inputmode="numeric"
                 pattern="[0-9]*"
                 maxlength="6"
-                @input="form.zip = form.zip.replace(/\D/g, '')"
+                @input="form.pincode = form.pincode.replace(/\D/g, '')"
                 required
               />
             </div>
           </div>
+          <label class="checkbox-field">
+            <input type="checkbox" v-model="form.isDefault" />
+            Set as default address
+          </label>
           <div class="actions">
             <button type="button" class="btn-cancel" @click="$emit('close')">
               Cancel
@@ -63,18 +76,28 @@ defineProps({
 const emit = defineEmits(["close", "save"]);
 
 const form = reactive({
-  title: "",
-  street: "",
+  addressLine1: "",
+  addressLine2: "",
   city: "",
-  zip: "",
+  state: "",
+  country: "",
+  pincode: "",
+  isDefault: false,
 });
+
+function resetForm() {
+  form.addressLine1 = "";
+  form.addressLine2 = "";
+  form.city = "";
+  form.state = "";
+  form.country = "";
+  form.pincode = "";
+  form.isDefault = false;
+}
 
 function submitAddress() {
   emit("save", { ...form });
-  form.title = "";
-  form.street = "";
-  form.city = "";
-  form.zip = "";
+  resetForm();
 }
 </script>
 
@@ -146,6 +169,19 @@ function submitAddress() {
 
 .modal input:focus {
   border-color: var(--color-primary, #111214);
+}
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-text-main, #14151a);
+  cursor: pointer;
+}
+
+.checkbox-field input {
+  width: auto;
 }
 
 .actions {
