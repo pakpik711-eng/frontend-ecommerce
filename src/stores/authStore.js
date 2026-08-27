@@ -5,7 +5,7 @@ import {
   loginUser,
   logoutUser,
   initiateGoogleAuth,
-  testAuth,
+
 } from "@/services/authApi";
 
 export const useAuthStore = defineStore("auth", () => {

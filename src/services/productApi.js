@@ -1,6 +1,5 @@
 import { apiRequest } from "./api";
 
-// const BASE_URL = "http://10.17.48.85:8085";
 const BASE_URL = "http://10.17.48.83:8080";
 
 export function getProducts(page, size) {

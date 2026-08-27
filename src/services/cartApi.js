@@ -1,6 +1,6 @@
 import { apiRequest } from "./api";
-
-const CART_URL = "http://10.17.48.83:8086";
+ 
+const CART_URL = "http://10.17.48.83:8080";
 const u_id = "550e8400-e29b-41d4-a716-446655440000";
 
 export function getCartCount() {
@@ -19,9 +19,9 @@ export function addCartItem(cartItems) {
 }
 
 export function updateCartItemQuantity(cartItemId, quantity) {
-  return apiRequest(CART_URL, `/api/${u_id}/cart/items/${cartItemId}`, {
+  return apiRequest(CART_URL, `/api/cart/${u_id}/items/${cartItemId}`, {
     method: "PATCH",
-    body: quantity,
+    body: {quantity},
   });
 }
 
@@ -32,7 +32,19 @@ export function removeItemCartItem(cartItemId) {
 }
 
 export function validateCart() {
-  return apiRequest(`/api/cart/${u_id}/validate`, {
+  return apiRequest(CART_URL,`/api/cart/${u_id}/validate`, {
+    method: "POST",
+  });
+}
+ export function buyNow(item) {
+  return apiRequest(CART_URL, `/api/cart/${u_id}/buy-now`, {
+    method: "POST",
+    body: item,
+  });
+}
+
+export function checkoutItem(cartItemId) {
+  return apiRequest(CART_URL, `/api/cart/${u_id}/checkout/${cartItemId}`, {
     method: "POST",
   });
 }

@@ -6,15 +6,20 @@
       <span>₹{{ (total || 0).toLocaleString("en-IN") }}</span>
     </div>
     <p v-if="error" class="error">{{ error }}</p>
-    <button :disabled="loading" @click="handleBuyNow">
-      {{ loading ? "Checking..." : "Buy Now" }}
-    </button>
+      <div v-if="actionError">{{ actionError }}</div>
+   <button
+      :disabled="loading"
+      @click="handleBuyNow"
+    > {{ loading ? "Checking..." : "Buy Now" }}
+     </button>
   </div>
+
 </template>
 
 <script setup>
-// import { useCheckoutStore } from '@/stores/checkoutStore';
-import { useRouter } from "vue-router";
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { validateCart } from '@/services/cartApi';
 
 defineProps({
   total: {
@@ -24,14 +29,24 @@ defineProps({
 });
 
 const router = useRouter();
-// const checkoutStore=useCheckoutStore();
+const loading = ref(false);
+const actionError = ref(null);
 
-async function handleBuyNow() {
-  const valid = await checkoutStore.validateCartBeforeCheckout();
-  if (!valid) {
-    return;
-  }
-  router.push("/checkout");
+function handleBuyNow(){
+  loading.value = true;
+  actionError.value = null;
+
+  return validateCart()
+    .then(() => {
+      router.push("/checkout");
+    })
+    .catch((err) => {
+      actionError.value = err.message;
+      // console.error("Unable to validate cart:", err);
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 }
 </script>
 

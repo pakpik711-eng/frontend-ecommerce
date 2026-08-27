@@ -6,11 +6,19 @@
         <form @submit.prevent="submitAddress">
           <div class="field">
             <label>Address Title</label>
-            <input v-model="form.title" placeholder="e.g. Home, Office" required />
+            <input
+              v-model="form.title"
+              placeholder="e.g. Home, Office"
+              required
+            />
           </div>
           <div class="field">
             <label>Street</label>
-            <input v-model="form.street" placeholder="Street address" required />
+            <input
+              v-model="form.street"
+              placeholder="Street address"
+              required
+            />
           </div>
           <div class="field-row">
             <div class="field">
@@ -19,11 +27,21 @@
             </div>
             <div class="field">
               <label>ZIP Code</label>
-              <input v-model="form.zip" placeholder="ZIP Code" required />
+              <input
+                v-model="form.zip"
+                placeholder="ZIP Code"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                maxlength="6"
+                @input="form.zip = form.zip.replace(/\D/g, '')"
+                required
+              />
             </div>
           </div>
           <div class="actions">
-            <button type="button" class="btn-cancel" @click="$emit('close')">Cancel</button>
+            <button type="button" class="btn-cancel" @click="$emit('close')">
+              Cancel
+            </button>
             <button type="submit" class="btn-submit">Add Address</button>
           </div>
         </form>
@@ -33,30 +51,31 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue';
+import { reactive } from "vue";
 
 defineProps({
   visible: {
     type: Boolean,
     required: true,
-  }});
+  },
+});
 
-  const emit=defineEmits(['close','save']);
+const emit = defineEmits(["close", "save"]);
 
-  const form=reactive({
+const form = reactive({
   title: "",
   street: "",
   city: "",
   zip: "",
-  })
+});
 
-  function submitAddress(){
-    emit('save',{...form});
+function submitAddress() {
+  emit("save", { ...form });
   form.title = "";
   form.street = "";
   form.city = "";
   form.zip = "";
-  }
+}
 </script>
 
 <style scoped>
