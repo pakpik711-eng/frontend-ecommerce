@@ -2,10 +2,11 @@
   <div class="tab-content">
     <h3>Order History</h3>
 
-    <div
-      v-if="checkoutStore.isLoading && orders.length === 0"
-      class="empty-state"
-    >
+    <div v-if="error" class="error-msg">
+      {{ error }}
+    </div>
+
+    <div v-if="isLoading && orders.length === 0" class="empty-state">
       Loading orders...
     </div>
 
@@ -32,7 +33,7 @@
             <button
               v-if="isCancellable(order.status)"
               class="cancel-btn"
-              :disabled="checkoutStore.isLoading"
+              :disabled="cancellingId === order.id"
               @click="handleCancel(order.id)"
             >
               {{ cancellingId === order.id ? "Cancelling..." : "Cancel Order" }}
@@ -112,9 +113,11 @@
               >
                 <span class="star-icon"> ★ </span>
                 Rate & Review Product
+
               </router-link>
             </div>
           </div>
+          
         </div>
 
         <div class="order-footer">
@@ -130,27 +133,103 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
-import { storeToRefs } from "pinia";
-import { useCheckoutStore } from "@/stores/checkoutStore";
+import { ref, onMounted } from "vue";
+import { fetchOrders, cancelOrder } from "@/services/checkoutApi";
 
-const checkoutStore = useCheckoutStore();
-const { orders } = storeToRefs(checkoutStore);
+const orders = ref([]);
+const isLoading = ref(false);
+const error = ref("");
+const cancellingId = ref(null);
 
-onMounted(() => {
-  checkoutStore.loadOrders();
-});
+const loadOrders = async () => {
+  isLoading.value = true;
+  error.value = "";
 
-const handleCancel = async (id) => {
-  if (confirm("Are you sure you want to cancel this order?")) {
-    try {
-      await checkoutStore.cancelOrder(id);
-    } catch (err) {
-      alert(err.message || "Failed to cancel order");
-    }
+  try {
+    const data = await fetchOrders();
+    orders.value = data;
+  } catch (err) {
+    error.value = err.message || "Failed to load orders";
+  } finally {
+    isLoading.value = false;
   }
 };
+
+onMounted(loadOrders);
+
+const handleCancel = async (orderId) => {
+  if (!confirm("Are you sure you want to cancel this order?")) {
+    return;
+  }
+
+  error.value = "";
+  cancellingId.value = orderId;
+
+  try {
+    const cancelledOrder = await cancelOrder(orderId);
+
+    const index = orders.value.findIndex((order) => order.id === orderId);
+
+    if (index !== -1) {
+      orders.value[index] = cancelledOrder;
+    }
+  } catch (err) {
+    error.value = err.message || "Failed to cancel order";
+  } finally {
+    cancellingId.value = null;
+  }
+};
+
+const formatCurrency = (value) => {
+  const amount = Number(value);
+
+  if (Number.isNaN(amount)) {
+    return "₹0.00";
+  }
+
+  return `₹${amount.toFixed(2)}`;
+};
+
+const formatDate = (date) => {
+  if (!date) {
+    return "";
+  }
+
+  return new Date(date).toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const formatStatus = (status) => {
+  if (!status) {
+    return "";
+  }
+
+  return status
+    .toLowerCase()
+    .replace(/\_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
+const getStatusClass = (status) => {
+  if (!status) {
+    return "";
+  }
+
+  return status.toLowerCase().replace(/\_/g, "-");
+};
+
+const isDelivered = (status) => {
+  return status === "DELIVERED";
+};
+
+const isCancellable = (status) => {
+  return status === "CREATED";
+};
 </script>
+
 <style scoped>
 h3 {
   margin-bottom: 1.25rem;

@@ -19,6 +19,7 @@ async function getUserId() {
   }
 
   return match[1];
+  
 }
 
 export async function placeOrder(orderData) {

@@ -50,7 +50,6 @@ import { computed, onMounted, onUnmounted, ref } from "vue";
 const router = useRouter();
 const cartStore = useCartStore();
 const userStore = useUserStore();
-const cartStore = useCartStore();
 const selectedAddress = ref(null);
 const paymentMethod = ref("COD");
 const showAddressModal = ref(false);
