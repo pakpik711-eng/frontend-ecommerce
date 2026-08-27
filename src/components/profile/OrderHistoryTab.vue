@@ -3,7 +3,7 @@
     <h3>Order History</h3>
 
     <div
-      v-if="checkoutStore.isLoading && orders.length === 0"
+      v-if="isLoading && orders.length === 0"
       class="empty-state"
     >
       Loading orders...
@@ -29,7 +29,7 @@
                 order.status !== 'Delivered' && order.status !== 'Cancelled'
               "
               class="cancel-btn"
-              :disabled="checkoutStore.isLoading"
+              :disabled="isLoading"
               @click="handleCancel(order.id)"
             >
               Cancel Order
@@ -82,25 +82,45 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
-import { storeToRefs } from "pinia";
-import { useCheckoutStore } from "@/stores/checkoutStore";
+import { onMounted, ref } from "vue";
+import { fetchOrders, withdrawOrder } from "@/services/checkoutApi";
 
-const checkoutStore = useCheckoutStore();
-const { orders } = storeToRefs(checkoutStore);
+const orders = ref([]);
+const isLoading = ref(false);
 
 onMounted(() => {
-  checkoutStore.loadOrders();
+  isLoading.value = true;
+  fetchOrders()
+    .then((response) => {
+      orders.value = response;
+    })
+    .catch((err) => {
+      console.error("Failed to load orders:", err);
+    })
+    .finally(() => {
+      isLoading.value = false;
+    });
 });
 
-const handleCancel = async (id) => {
-  if (confirm("Are you sure you want to cancel this order?")) {
-    try {
-      await checkoutStore.cancelOrder(id);
-    } catch (err) {
-      alert(err.message || "Failed to cancel order");
-    }
+const handleCancel = (id) => {
+  if (!confirm("Are you sure you want to cancel this order?")) {
+    return;
   }
+
+  isLoading.value = true;
+  withdrawOrder(id)
+    .then((updatedOrder) => {
+      const index = orders.value.findIndex((o) => o.id === id);
+      if (index !== -1) {
+        orders.value[index] = updatedOrder;
+      }
+    })
+    .catch((err) => {
+      alert(err.message || "Failed to cancel order");
+    })
+    .finally(() => {
+      isLoading.value = false;
+    });
 };
 </script>
 

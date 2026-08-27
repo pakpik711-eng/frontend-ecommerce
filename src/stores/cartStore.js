@@ -1,11 +1,4 @@
-import {
-  addCartItem,
-  getCart,
-  getCartCount,
-  removeItemCartItem,
-  updateCartItemQuantity,
-  validateCart,
-} from "@/services/cartApi";
+import {addCartItem,getCart,getCartCount,removeItemCartItem,updateCartItemQuantity} from "@/services/cartApi";
 
 import { defineStore } from "pinia";
 import { ref } from "vue";
@@ -14,136 +7,133 @@ export const useCartStore = defineStore("cart", () => {
   const cartItems = ref([]);
   const loading = ref(false);
   const error = ref(null);
+  const actionError = ref(null);
   const totalPrice = ref(0);
   const cartCount = ref(0);
+  const buyNowItemId = ref(null);
 
-  async function fetchCartCount() {
-    try {
-      const response = await getCartCount();
-      cartCount.value = response.count;
-    } catch (err) {
-      cartCount.value = 0;
-      console.error("Failed to fetch cart count:", err);
-    }
+  function setBuyNowItem(cartItemId) {
+    buyNowItemId.value = cartItemId;
   }
 
-  async function fetchCart() {
+  function clearBuyNowItem() {
+    buyNowItemId.value = null;
+  }
+
+  function fetchCartCount() {
+    return getCartCount()
+      .then((response) => {
+        cartCount.value = response.count;
+      })
+      .catch((err) => {
+        cartCount.value = 0;
+        console.error("Failed to fetch cart count:", err);
+      });
+  }
+   
+  function fetchCart() {
     loading.value = true;
     error.value = null;
 
-    try {
-      const response = await getCart();
-
-      console.log(response);
-
-      cartItems.value = response.items;
-      totalPrice.value = response.totalPrice;
-      cartCount.value = response.items.length;
-    } catch (err) {
-      error.value = "Failed to Load cart";
-      console.error("Failed to fetch cart:", err);
-    } finally {
-      loading.value = false;
-    }
+    return getCart()
+      .then((response) => {
+        cartItems.value = response.items;
+        totalPrice.value = response.totalPrice;
+        cartCount.value = response.items.length;
+      })
+      .catch((err) => {
+        error.value = "Failed to Load cart";
+        console.error("Failed to fetch cart:", err);
+      })
+      .finally(() => {
+        loading.value = false;
+      });
   }
 
-  async function addItem(item) {
+  function addItem(item) {
     loading.value = true;
-    error.value = null;
+    actionError.value = null;
 
-    try {
-      console.log(item);
-      const response = await addCartItem(item);
-      console.log(response);
-      cartItems.value.push(response.item);
-      totalPrice.value = response.totalPrice;
-
-      cartCount.value += 1;
-
-      return response;
-    } catch (err) {
-      error.value = err;
-      console.error("Failed to add cart item:", err);
-      throw err;
-    } finally {
-      loading.value = false;
-    }
+    return addCartItem(item)
+      .then((response) => {
+        cartItems.value.push(response.item);
+        totalPrice.value = response.totalPrice;
+        cartCount.value = cartItems.value.length;
+        return response;
+      })
+      .catch((err) => {
+        actionError.value = err;
+        console.error("Failed to add cart item:", err);
+        throw err;
+      })
+      .finally(() => {
+        loading.value = false;
+      });
   }
 
-  async function increaseQuantity(cartItemId) {
+  function increaseQuantity(cartItemId) {
     const item = cartItems.value.find((item) => item.cartItemId === cartItemId);
 
-    if (!item) return;
+    if (!item) return Promise.resolve();
 
     if (item.quantity >= item.availableStock) {
-      error.value = "Out of stock";
-      return;
+      actionError.value = "Out of stock";
+      return Promise.resolve();
     }
 
-    await changeQuantity(cartItemId, item.quantity + 1);
+    return changeQuantity(cartItemId, item.quantity + 1);
   }
 
-  async function decreaseQuantity(cartItemId) {
+  function decreaseQuantity(cartItemId) {
     const item = cartItems.value.find((item) => item.cartItemId === cartItemId);
 
-    if (!item) return;
+    if (!item) return Promise.resolve();
 
     if (item.quantity <= 1) {
-      return;
+      return Promise.resolve();
     }
 
-    await changeQuantity(cartItemId, item.quantity - 1);
+    return changeQuantity(cartItemId, item.quantity - 1);
   }
 
-  async function changeQuantity(cartItemId, quantity) {
-    try {
-      const response = await updateCartItemQuantity(cartItemId, quantity);
+  function changeQuantity(cartItemId, quantity) {
+    actionError.value = null;
 
-      const index = cartItems.value.findIndex(
-        (item) => item.cartItemId === cartItemId,
-      );
+    return updateCartItemQuantity(cartItemId, quantity)
+      .then((response) => {
+        const index = cartItems.value.findIndex(
+          (item) => item.cartItemId === cartItemId,
+        );
 
-      if (index !== -1) {
-        cartItems.value[index].quantity = response.item.quantity;
-        cartItems.value[index].price = response.item.price;
-      }
+        if (index !== -1) {
+          cartItems.value[index].quantity = response.quantity;
+          cartItems.value[index].price = response.lineTotal;
+        }
 
-      totalPrice.value = response.totalPrice;
-    } catch (err) {
-      error.value = "Unable to update quantity";
-      console.error("Unable to update quantity:", err);
-      throw err;
-    }
+        totalPrice.value = response.cartTotalPrice;
+      })
+      .catch((err) => {
+        actionError.value = "Unable to update quantity";
+        console.error("Unable to update quantity:", err);
+        throw err;
+      });
   }
 
-  async function removeItem(cartItemId) {
-    try {
-      await removeItemCartItem(cartItemId);
+  function removeItem(cartItemId) {
+    actionError.value = null;
 
-      cartItems.value = cartItems.value.filter(
-        (item) => item.cartItemId !== cartItemId,
-      );
-
-      cartCount.value--;
-    } catch (err) {
-      error.value = "Unable to remove item";
-      console.error("Unable to remove item:", err);
-      throw err;
-    }
-  }
-
-  async function validateCartItems() {
-    try {
-      error.value = null;
-
-      const response = await validateCart();
-
-      return response;
-    } catch (err) {
-      error.value = "Unable to validate cart";
-      console.error("Unable to validate cart:", err);
-      throw err;
-    }
+    return removeItemCartItem(cartItemId)
+      .then(() => {
+        cartItems.value = cartItems.value.filter(
+          (item) => item.cartItemId !== cartItemId,
+        );
+        cartCount.value = cartItems.value.length;
+      })
+      .catch((err) => {
+        actionError.value = "Unable to remove item";
+        console.error("Unable to remove item:", err);
+        throw err;
+      });
   }
 
   function clearCartCount() {
@@ -154,8 +144,10 @@ export const useCartStore = defineStore("cart", () => {
     cartItems,
     loading,
     error,
+    actionError,
     totalPrice,
     cartCount,
+    buyNowItemId,
 
     fetchCart,
     fetchCartCount,
@@ -167,7 +159,8 @@ export const useCartStore = defineStore("cart", () => {
     removeItem,
     addItem,
 
-    validateCartItems,
+    setBuyNowItem,
+    clearBuyNowItem,
 
     clearCartCount,
   };

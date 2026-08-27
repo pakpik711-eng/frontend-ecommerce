@@ -1,7 +1,7 @@
 <template>
   <div class="product-card">
     <img
-      src= 'https://placehold.co/400x300?text=Product+Image'
+      :src=product.thumbnail
       :alt="product.name"
       class="product-image"
     />

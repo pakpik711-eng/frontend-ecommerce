@@ -1,8 +1,8 @@
 <template>
   <main class="checkout-page">
     <h1>Checkout</h1>
-    <p v-if="checkoutStore.error" class="error">
-      {{ checkoutStore.error }}
+    <p v-if="error" class="error">
+      {{ error }}
     </p>
     <div class="checkout-layout">
       <section class="checkout-left">
@@ -14,18 +14,18 @@
         />
         <PaymentMethod v-model="paymentMethod" />
 
-        <CheckoutItems :items="checkoutStore.checkoutItems" />
+        <CheckoutItems :items="checkoutItems" />
       </section>
       <aside>
-        <CheckoutSummary :subtotal="checkoutStore.subtotal" />
+        <CheckoutSummary :subtotal="checkoutSubtotal" />
         <button
           class="place-order"
           :disabled="
-            checkoutStore.placingOrder || !selectedAddress || !paymentMethod
+            placingOrder || !selectedAddress || !paymentMethod
           "
           @click="handlePlaceOrder"
         >
-          {{ checkoutStore.placingOrder ? "Placing Order..." : "Place Order" }}
+          {{ placingOrder ? "Placing Order..." : "Place Order" }}
         </button>
       </aside>
     </div>
@@ -45,56 +45,87 @@ import CheckoutSummary from "@/components/checkout/CheckoutSummary.vue";
 import PaymentMethod from "@/components/checkout/PaymentMethod.vue";
 import AddressModal from "@/components/checkout/AddressModal.vue";
 import { useRouter } from "vue-router";
-import { useCheckoutStore } from "@/stores/checkoutStore";
+import { useCartStore } from "@/stores/cartStore";
 import { useUserStore } from "@/stores/userStore";
-import { onMounted, ref } from "vue";
+import { placeOrder } from "@/services/checkoutApi";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 
 const router = useRouter();
-const checkoutStore = useCheckoutStore();
+const cartStore = useCartStore();
 const userStore = useUserStore();
 const selectedAddress = ref(null);
 const paymentMethod = ref("COD");
 const showAddressModal = ref(false);
 
-onMounted(async () => {
-  await userStore.loadAddresses();
-  cartStore.fetchCart();
+const placingOrder = ref(false);
+const error = ref(null);
+
+const checkoutItems = computed(() => {
+  if (cartStore.buyNowItemId) {
+    return cartStore.cartItems.filter(
+      (item) => item.cartItemId === cartStore.buyNowItemId,
+    );
+  }
+  return cartStore.cartItems;
 });
 
-async function handleAddAddress(addressData) {
-  await userStore.addAddress(addressData);
-  showAddressModal.value = false;
+const checkoutSubtotal = computed(() =>
+  checkoutItems.value.reduce((sum, item) => sum + (item.lineTotal || 0), 0),
+);
+
+onMounted(() => {
+  userStore.loadAddresses().then(() => {
+    cartStore.fetchCart();
+  });
+});
+
+onUnmounted(() => {
+  cartStore.clearBuyNowItem();
+});
+
+function handleAddAddress(addressData) {
+  return userStore.addAddress(addressData).then(() => {
+    showAddressModal.value = false;
+  });
 }
 
-async function handlePlaceOrder() {
+function handlePlaceOrder() {
   if (!selectedAddress.value) {
-    checkoutStore.error = "Please select a delivery address";
+    error.value = "Please select a delivery address";
     return;
   }
   if (!paymentMethod.value) {
-    checkoutStore.error = "Please select a payment method";
+    error.value = "Please select a payment method";
     return;
   }
+
+  placingOrder.value = true;
+  error.value = null;
+
   const orderData = {
     addressId: selectedAddress.value,
     paymentMethod: paymentMethod.value,
   };
 
-  try {
-    const order = await checkoutStore.createOrder(orderData);
-
-    router.push({
-      name: "OrderSuccess",
-      query: {
-        orderId: order.id,
-      },
-    });
-  } catch (err) {
-    if (err.response?.unavailableItems) {
-      checkoutStore.error =
-        "Some products are no longer available. Please return to your cart.";
-    }
+  if (cartStore.buyNowItemId) {
+    orderData.cartItemId = cartStore.buyNowItemId;
   }
+
+  return placeOrder(orderData)
+    .then((order) => {
+      router.push({
+        name: "OrderSuccess",
+        query: {
+          orderId: order.id,
+        },
+      });
+    })
+    .catch((err) => {
+      error.value = err.message || "Unable to place order";
+    })
+    .finally(() => {
+      placingOrder.value = false;
+    });
 }
 </script>
 

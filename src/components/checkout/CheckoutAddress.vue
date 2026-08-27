@@ -36,6 +36,7 @@ defineProps({
     }
 })
 defineEmits(["select", "add-address"]);
+
 </script><style scoped>
 .address-section {
   background: var(--color-surface);

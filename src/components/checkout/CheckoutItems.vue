@@ -1,39 +1,33 @@
 <template>
-  
-
   <div class="checkout-items">
     <h2>Your Products</h2>
-    <div v-for="item in items"
-    :key="item.cartItemId"
-    class="checkout-item"
-    >
-
-    <img :src="item.productImage"  :alt="item.productTitle"/>
-    <div class="product-info">
-           <h3>{{ item.productTitle }}  </h3>
-    <p>Seller: {{ item.sellerName }}   </p>
-     <p>Price: ₹{{ (item.price || 0).toLocaleString("en-IN") }}  </p>
-     <p>Quantity: {{ item.quantity }}</p>
-    </div>
-    <div class="item-total">₹{{ (item.totalPrice || 0).toLocaleString("en-IN") }}
+    <div v-for="item in items" :key="item.cartItemId" class="checkout-item">
+      <img :src="item.productImage" :alt="item.productTitle" />
+      <div class="product-info">
+        <h3>{{ item.productName }}</h3>
+        <p>Seller: {{ item.sellerName }}</p>
+        <p>Price: ₹{{ (item.unitPrice || 0).toLocaleString("en-IN") }}</p>
+        <p>Quantity: {{ item.quantity }}</p>
+      </div>
+      <div class="item-total">
+        ₹{{ (item.lineTotal || 0).toLocaleString("en-IN") }}
       </div>
     </div>
   </div>
-
 </template>
 
 <script setup>
-
 defineProps({
-    items:{
-        type:Array,
-        required:true,
-    },
-})
-</script><style scoped>
+  items: {
+    type: Array,
+    required: true,
+  },
+});
+</script>
+<style scoped>
 .checkout-items {
   background: var(--color-surface);
-  border: .5px solid var(--color-text-main);
+  border: 0.5px solid var(--color-text-main);
   border-radius: 4px;
   padding: 1.5rem;
 }

@@ -5,7 +5,7 @@ import {
   loginUser,
   logoutUser,
   initiateGoogleAuth,
-  testAuth,
+
 } from "@/services/authApi";
 import { useUserStore } from "./userStore";
 import { useCartStore } from "./cartStore";

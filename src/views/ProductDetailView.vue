@@ -1,8 +1,8 @@
 <template>
   <main class="product-details">
-    <div v-if="productStore.loading" class="loading">Loading ......</div>
-    <div v-else-if="productStore.error" class="error">
-      {{ productStore.error }}
+    <div v-if="loading" class="loading">Loading ......</div>
+    <div v-else-if="pageError" class="error">
+      {{ pageError }}
     </div>
     <template v-else-if="product">
       <section class="product-section">
@@ -23,7 +23,7 @@
         </div>
         <div class="product-info">
           <h1>{{ product.name }}</h1>
-          <div class="product-rating">⭐ {{ selectedVariant?.rating }}</div>
+
           <p class="description">{{ product.description }}</p>
           <div
             v-for="(values, attributeName) in product.attributes"
@@ -46,13 +46,16 @@
                 :class="{
                   selected: selectedAttributes[attributeName] === value,
                 }"
-                :disabled="productStore.loading"
+                :disabled="loading"
                 @click="changeAttribute(attributeName, value)"
               >
                 {{ value }}
               </button>
             </div>
           </div>
+          <p v-if="variantError" class="error variant-error">
+            {{ variantError }}
+          </p>
 
           <div v-if="selectedMerchant" class="selected-merchant">
             <p>Sold by</p>
@@ -61,20 +64,34 @@
               ₹{{ formatPrice(selectedMerchant.price) }}
             </div>
             <div>⭐{{ selectedMerchant.rating }}</div>
-         
           </div>
 
-          <div v-if="selectedMerchant && selectedMerchant.stock > 0" class="quantity-selector">
+          <div
+            v-if="selectedMerchant && selectedMerchant.stock > 0"
+            class="quantity-selector"
+          >
             <span class="quantity-label">Quantity</span>
             <div class="quantity-control">
               <button :disabled="quantity <= 1" @click="decreaseQty">-</button>
               <span>{{ quantity }}</span>
-              <button :disabled="quantity >= selectedMerchant.stock" @click="increaseQty">+</button>
+              <button
+                :disabled="quantity >= selectedMerchant.stock"
+                @click="increaseQty"
+              >
+                +
+              </button>
             </div>
           </div>
+          <p v-if="actionError" class="error action-error">
+            {{ actionError }}
+          </p>
 
           <div class="actions">
+            <button v-if="addedToCart" @click="router.push({ name: 'Cart' })">
+              Go to Cart
+            </button>
             <button
+              v-else
               :disabled="!selectedMerchant || selectedMerchant.stock <= 0"
               @click="addToCart"
             >
@@ -102,15 +119,19 @@
           class="merchant-card"
           :class="{
             selected: selectedMerchant?.merchantId === merchant.merchantId,
+            'out-of-stock': merchant.stock <= 0,
           }"
-          @click="selectMerchant(merchant)"
+          @click="merchant.stock > 0 && selectMerchant(merchant)"
         >
           <div class="merchant-info">
             <h3>{{ merchant.merchantName }}</h3>
             <p>⭐{{ merchant.rating }}</p>
           </div>
           <div class="merchant-price">
-            <strong>₹{{ formatPrice(merchant.price) }} </strong>
+            <span v-if="merchant.stock <= 0" class="stock-badge"
+              >Out of Stock</span
+            >
+            <strong v-else>₹{{ formatPrice(merchant.price) }} </strong>
           </div>
         </div>
       </section>
@@ -121,30 +142,37 @@
     </template>
   </main>
 </template>
-
 <script setup>
 import { useCartStore } from "@/stores/cartStore";
-import { useProductStore } from "@/stores/productStore";
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { getProductDetail, getProductVariant } from "@/services/productApi";
+import { computed, onMounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 const router = useRouter();
 const route = useRoute();
-const productStore = useProductStore();
 const cartStore = useCartStore();
+const addedToCart = ref(false);
 
-const product = computed(() => productStore.currentProduct);
+const loading = ref(false);
+const pageError = ref(null);
+const actionError = ref(null);
+const variantError = ref(null);
+
+const product = ref(null);
+const selectedVariant = ref(null);
+const merchants = ref([]);
+const selectedMerchant = ref(null);
 
 const selectedAttributes = reactive({});
-const selectedMerchant = computed(() => productStore.selectedMerchant);
-const merchants = computed(() => productStore.merchants);
-const selectedVariant = computed(() => productStore.selectedVariant);
 
 const activeImage = ref(null);
 const quantity = ref(1);
 
 const mainImage = computed(
-  () => activeImage.value || selectedVariant.value?.images?.[0] || product.value?.thumbnail,
+  () =>
+    activeImage.value ||
+    product.value?.thumbnail ||
+    selectedVariant.value?.images?.[0],
 );
 
 function selectImage(image) {
@@ -163,67 +191,107 @@ function decreaseQty() {
   }
 }
 
-watch(selectedVariant, () => {
-  activeImage.value = null;
-  quantity.value = 1;
-});
-
-watch(selectedMerchant, () => {
-  quantity.value = 1;
-});
-
-async function loadProduct() {
+function loadProduct() {
   const productId = route.params.productId;
   const merchantId = route.query.merchant;
 
   if (!productId) {
-    return;
+    return Promise.resolve();
   }
 
-  const response = await productStore.loadProduct(productId, merchantId);
-  Object.keys(response.selectedVariant?.attributes || {}).forEach(
-    (attributeName) => {
-      selectedAttributes[attributeName] =
-        response.selectedVariant.attributes[attributeName];
-    },
-  );
+  loading.value = true;
+  pageError.value = null;
+  return getProductDetail(productId)
+    .then((response) => {
+      product.value = {
+        productId: response.productId,
+        name: response.name,
+        description: response.description,
+        thumbnail: response.thumbnail,
+        attributes: response.attributes,
+      };
+
+      selectedVariant.value = response.selectedVariant;
+      merchants.value = response.selectedVariant?.merchants || [];
+
+      if (merchantId) {
+        const merchant = merchants.value.find(
+          (item) => String(item.merchantId) === String(merchantId),
+        );
+        selectedMerchant.value = merchant || merchants.value[0] || null;
+      } else {
+        selectedMerchant.value = merchants.value[0] || null;
+      }
+
+      Object.keys(response.selectedVariant?.attributes || {}).forEach(
+        (attributeName) => {
+          selectedAttributes[attributeName] =
+            response.selectedVariant.attributes[attributeName];
+        },
+      );
+
+      activeImage.value = null;
+      quantity.value = 1;
+    })
+    .catch((err) => {
+      pageError.value = err.message || "Failed to load product";
+      throw err;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 }
 
-async function changeAttribute(attributeName, value) {
+function changeAttribute(attributeName, value) {
+  const previousValue = selectedAttributes[attributeName];
   selectedAttributes[attributeName] = value;
 
-  try {
-    const response = await productStore.changeVariant(route.params.productId, {
-      ...selectedAttributes,
-    });
-    Object.keys(response.attributes || {}).forEach((attribute) => {
-      selectedAttributes[attribute] = response.attributes[attribute];
-    });
+  loading.value = true;
+  variantError.value = null;
 
-    await router.replace({
-      name: "ProductDetail",
-      params: {
-        productId: route.params.productId,
-      },
-      query: {
-        ...Object.fromEntries(
-          Object.entries(route.query).filter(([key]) => key !== "merchant"),
-        ),
-      },
+  return getProductVariant(route.params.productId, { ...selectedAttributes })
+    .then((response) => {
+      selectedVariant.value = response;
+      merchants.value = response.merchants || [];
+      selectedMerchant.value = merchants.value[0] || null;
+
+      Object.keys(response.attributes || {}).forEach((attribute) => {
+        selectedAttributes[attribute] = response.attributes[attribute];
+      });
+
+      activeImage.value = null;
+      quantity.value = 1;
+      addedToCart.value = false;
+
+      return router.replace({
+        name: "ProductDetail",
+        params: {
+          productId: route.params.productId,
+        },
+        query: {
+          ...Object.fromEntries(
+            Object.entries(route.query).filter(([key]) => key !== "merchant"),
+          ),
+        },
+      });
+    })
+    .catch((err) => {
+      selectedAttributes[attributeName] = previousValue;
+      variantError.value = err.message || "Failed to load variant";
+      console.error(err);
+    })
+    .finally(() => {
+      loading.value = false;
     });
-  } catch (err) {
-    console.error(err);
-  }
 }
 
-function getMerchantName(merchant) {
-  return merchant.merchantName;
-}
 
-async function selectMerchant(merchant) {
-  productStore.selectMerchant(merchant);
+function selectMerchant(merchant) {
+  selectedMerchant.value = merchant;
+  quantity.value = 1;
+  addedToCart.value = false;
 
-  await router.replace({
+  return router.replace({
     name: "ProductDetail",
     params: {
       productId: route.params.productId,
@@ -239,36 +307,51 @@ function formatPrice(price) {
   const value = Number(price);
   return Number.isFinite(value) ? value.toLocaleString("en-IN") : "0";
 }
-
-async function addToCart() {
+function addToCart() {
   if (!selectedMerchant.value) {
-    return;
+    return Promise.resolve();
   }
 
-  try {
-    await cartStore.addItem({
+  actionError.value = null;
+
+  return cartStore
+    .addItem({
       productId: product.value.productId,
       variantId: selectedVariant.value.variantId,
       merchantId: selectedMerchant.value.merchantId,
       quantity: quantity.value,
+    })
+    .then(() => {
+      addedToCart.value = true;
+    })
+    .catch((err) => {
+      actionError.value = err.message || "Unable to add item to cart";
+      console.error(err);
     });
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
 }
 
-async function buyNow() {
+function buyNow() {
   if (!selectedMerchant.value) {
-    return;
+    return Promise.resolve();
   }
-  await cartStore.addItem({
-    p_id: product.value.productId,
-    v_id: selectedVariant.value.variantId,
-    m_id: selectedMerchant.value.merchantId,
-    quantity: quantity.value,
-  });
-  router.push({ name: "Checkout" });
+
+  actionError.value = null;
+
+  return cartStore
+    .addItem({
+      productId: product.value.productId,
+      variantId: selectedVariant.value.variantId,
+      merchantId: selectedMerchant.value.merchantId,
+      quantity: quantity.value,
+    })
+    .then((response) => {
+      cartStore.setBuyNowItem(response.item.cartItemId);
+      router.push({ name: "Checkout" });
+    })
+    .catch((err) => {
+      actionError.value = err.message || "Unable to proceed to checkout";
+      console.error(err);
+    });
 }
 
 function formatAttributeName(value) {
@@ -343,7 +426,9 @@ onMounted(loadProduct);
   border: 2px solid var(--color-border);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: border-color 0.2s, transform 0.2s;
+  transition:
+    border-color 0.2s,
+    transform 0.2s;
 }
 
 .variant-images img:hover {
@@ -516,7 +601,10 @@ onMounted(loadProduct);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s, background-color 0.15s;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s,
+    background-color 0.15s;
 }
 
 .actions > button:first-of-type {
@@ -684,5 +772,26 @@ onMounted(loadProduct);
     padding: 0.45rem 0.9rem;
     font-size: 0.82rem;
   }
+}
+
+.merchant-card.out-of-stock {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background: var(--color-bg);
+}
+
+.merchant-card.out-of-stock:hover {
+  border-color: var(--color-border);
+  box-shadow: none;
+}
+
+.stock-badge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-danger);
+}
+
+.action-error {
+  max-width: 1200px;
 }
 </style>
