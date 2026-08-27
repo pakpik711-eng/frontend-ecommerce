@@ -1,5 +1,7 @@
 <template>
-  <button class="btn">{{ text }}</button>
+  <button class="btn" :type="type" :disabled="disabled">
+    {{ text }}
+  </button>
 </template>
 
 <script setup>
@@ -7,6 +9,16 @@ defineProps({
   text: {
     type: String,
     default: "Click",
+  },
+
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+
+  type: {
+    type: String,
+    default: "submit",
   },
 });
 </script>
@@ -23,9 +35,14 @@ defineProps({
   cursor: pointer;
 }
 
-.btn:hover {
+.btn:hover:not(:disabled) {
   background-color: #1d4ed8;
   border-color: #1d4ed8;
   color: #ffffff;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>

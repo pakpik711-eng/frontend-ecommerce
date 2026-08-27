@@ -34,23 +34,25 @@
           v-model="confirmPassword"
           placeholder="Confirm password"
         />
+
         <span v-if="confirmPassword && !isPasswordMatch" class="error-msg">
           Passwords do not match
         </span>
 
-        <span v-if="authStore.error" class="error-msg">{{
-          authStore.error
-        }}</span>
+        <span v-if="signupError" class="error-msg">
+          {{ signupError }}
+        </span>
 
         <BaseButton
-          :text="authStore.isLoading ? 'Signing up...' : 'Sign Up'"
+          :text="isLoading ? 'Signing up...' : 'Sign Up'"
           class="submit-btn"
-          :disabled="!isValid || !isPasswordMatch || authStore.isLoading"
+          :disabled="!isValid || !isPasswordMatch || isLoading"
         />
       </form>
 
       <p class="toggle-text">
         Already have an account?
+
         <router-link
           :to="{
             name: 'Login',
@@ -68,7 +70,11 @@
 <script setup>
 import { ref, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
+
 import { useAuthStore } from "@/stores/authStore";
+import { useUserStore } from "@/stores/userStore";
+import { userApi } from "@/services/userApi";
+
 import { usePasswordValidation } from "@/composables/usePasswordValidation";
 
 import BaseButton from "@/components/common/BaseButton.vue";
@@ -79,11 +85,16 @@ import PasswordRules from "@/components/auth/PasswordRules.vue";
 
 const router = useRouter();
 const route = useRoute();
+
 const authStore = useAuthStore();
+const userStore = useUserStore();
 
 const email = ref("");
 const password = ref("");
 const confirmPassword = ref("");
+
+const signupError = ref("");
+const isLoading = ref(false);
 
 const { rules, isValid } = usePasswordValidation(password);
 
@@ -95,21 +106,42 @@ const handleGoogleAuth = () => {
   authStore.loginWithGoogle();
 };
 
-const handleSignup = async () => {
-  if (!isValid.value || !isPasswordMatch.value) return;
-
-  await authStore.register({
-    email: email.value,
-    password: password.value,
-  });
-
+const getRedirectPath = () => {
   const redirect = route.query.redirect;
 
-  if (redirect && typeof redirect === "string") {
-    await router.push(redirect);
-  } else {
-    await router.push({ name: "Home" });
+  return typeof redirect === "string" ? redirect : "/";
+};
+
+const handleSignup = () => {
+  if (!isValid.value || !isPasswordMatch.value) {
+    return;
   }
+
+  signupError.value = "";
+  isLoading.value = true;
+
+  authStore
+    .register({
+      email: email.value,
+      password: password.value,
+    })
+    .then(() =>
+      userApi
+        .fetchProfile()
+        .then((profile) => {
+          userStore.setProfile(profile);
+        })
+        .catch((error) => {
+          console.error("Failed to load user profile:", error);
+        }),
+    )
+    .then(() => router.replace(getRedirectPath()))
+    .catch((error) => {
+      signupError.value = error.message || "Failed to sign up";
+    })
+    .finally(() => {
+      isLoading.value = false;
+    });
 };
 </script>
 
@@ -176,11 +208,6 @@ label {
 .submit-btn {
   width: 100%;
   margin-top: 0.5rem;
-}
-
-.submit-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 .toggle-text {

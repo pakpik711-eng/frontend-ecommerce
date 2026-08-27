@@ -7,123 +7,63 @@ import {
   initiateGoogleAuth,
   testAuth,
 } from "@/services/authApi";
-import { useUserStore } from "./userStore";
-import { useCartStore } from "./cartStore";
-import { userApi } from "@/services/userApi";
 
 export const useAuthStore = defineStore("auth", () => {
   const isAuthenticated = ref(false);
   const authInitialized = ref(false);
-  const isLoading = ref(false);
-  const error = ref(null);
 
   function loginWithGoogle() {
     initiateGoogleAuth();
   }
 
-  async function login(credentials) {
-    isLoading.value = true;
-    error.value = null;
-
-    try {
-      await loginUser(credentials);
-
-      // The login API establishes the authenticated session/cookie.
-      // Immediately verify it and load the user profile so every component
-      // reacts to the same Pinia state without requiring a page reload.
-      const userStore = useUserStore();
-      const userData = await userApi.fetchProfile();
-
-      if (!userData) {
-        isAuthenticated.value = false;
-        throw new Error(
-          "Login succeeded, but the authenticated session could not be verified.",
-        );
-      }
-
-      userStore.profile = userData;
+  function login(credentials) {
+    return loginUser(credentials).then(() => {
       isAuthenticated.value = true;
       authInitialized.value = true;
 
       return true;
-    } catch (err) {
-      isAuthenticated.value = false;
-      error.value = err.message || "Failed to log in";
-      throw err;
-    } finally {
-      isLoading.value = false;
-    }
+    });
   }
 
-  async function register(credentials) {
-    isLoading.value = true;
-    error.value = null;
-    try {
-      await registerUser(credentials);
-    } catch (err) {
-      error.value = err.message || "Failed to sign up";
-      isLoading.value = false;
-      throw err;
-    }
-
-    isLoading.value = false;
-    return await login(credentials);
+  function register(credentials) {
+    return registerUser(credentials).then(() => login(credentials));
   }
 
-  async function initializeAuth() {
-    isLoading.value = true;
-    error.value = null;
+  function initializeAuth() {
+    authInitialized.value = false;
 
-    try {
-      const userData = await userApi.fetchProfile();
-      const userStore = useUserStore();
+    return testAuth()
+      .then(
+        () => {
+          isAuthenticated.value = true;
+        },
+        () => {
+          isAuthenticated.value = false;
+        },
+      )
+      .finally(() => {
+        authInitialized.value = true;
+      });
+  }
 
-      if (!userData) {
-        userStore.profile = null;
+  function logout() {
+    return logoutUser().then(
+      () => {
         isAuthenticated.value = false;
-        return;
-      }
+        authInitialized.value = true;
+      },
+      (error) => {
+        isAuthenticated.value = false;
+        authInitialized.value = true;
 
-      userStore.profile = userData;
-      isAuthenticated.value = true;
-    } catch (err) {
-      console.error("Authentication initialization failed:", err);
-
-      const userStore = useUserStore();
-      userStore.profile = null;
-      isAuthenticated.value = false;
-    } finally {
-      isLoading.value = false;
-      authInitialized.value = true;
-    }
-  }
-
-  async function logout() {
-    isLoading.value = true;
-    error.value = null;
-
-    const userStore = useUserStore();
-    const cartStore = useCartStore();
-
-    try {
-      await logoutUser();
-    } catch (err) {
-      error.value = err.message || "Failed to log out";
-    } finally {
-      isAuthenticated.value = false;
-      userStore.profile = null;
-      cartStore.clearCartCount();
-      cartStore.cartItems = [];
-      cartStore.totalPrice = 0;
-      isLoading.value = false;
-    }
+        return Promise.reject(error);
+      },
+    );
   }
 
   return {
     isAuthenticated,
     authInitialized,
-    isLoading,
-    error,
     login,
     register,
     loginWithGoogle,

@@ -3,6 +3,7 @@
     <label :for="id">{{ label }}</label>
     <div class="input-wrapper">
       <input
+      class="input-wrapper-pass"
         :id="id"
         :type="showPassword ? 'text' : 'password'"
         :value="modelValue"

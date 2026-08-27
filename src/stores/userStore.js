@@ -1,126 +1,105 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { userApi } from "@/services/userApi";
-import { useAuthStore } from "./authStore";
 
 export const useUserStore = defineStore("user", () => {
   const profile = ref(null);
   const addresses = ref([]);
-  const orders = ref([]);
-  const isLoading = ref(false);
-  const error = ref(null);
 
   const userInitial = computed(() => {
-    return profile.value?.name
-      ? profile.value.name.charAt(0).toUpperCase()
-      : "U";
+    if (profile.value?.firstName) {
+      return profile.value.firstName.charAt(0).toUpperCase();
+    }
+
+    if (profile.value?.lastName) {
+      return profile.value.lastName.charAt(0).toUpperCase();
+    }
+
+    if (profile.value?.email) {
+      return profile.value.email.charAt(0).toUpperCase();
+    }
+
+    return "U";
   });
 
-  async function loadProfile() {
-    isLoading.value = true;
-    error.value = null;
-    try {
-      profile.value = await userApi.fetchProfile();
-    } catch (err) {
-      error.value = err.message || "Failed to load profile";
-      const authStore = useAuthStore();
-      authStore.isAuthenticated = false;
-    } finally {
-      isLoading.value = false;
+  function setProfile(user) {
+    profile.value = user;
+  }
+
+  function clearProfile() {
+    profile.value = null;
+  }
+
+  function setAddresses(value) {
+    addresses.value = value;
+  }
+
+  function addAddressToStore(address) {
+    addresses.value.push(address);
+  }
+
+  function updateAddressInStore(updatedAddress) {
+    const index = addresses.value.findIndex(
+      (address) => address.id === updatedAddress.id,
+    );
+
+    if (index !== -1) {
+      addresses.value[index] = updatedAddress;
     }
   }
 
-  async function updateProfile(userData) {
-    isLoading.value = true;
-    error.value = null;
-    try {
-      profile.value = await userApi.updateProfile(userData);
-    } catch (err) {
-      error.value = err.message || "Failed to update profile";
-      throw err;
-    } finally {
-      isLoading.value = false;
-    }
+  function removeAddressFromStore(id) {
+    addresses.value = addresses.value.filter((address) => address.id !== id);
   }
 
-  async function updatePassword(credentials) {
-    isLoading.value = true;
-    error.value = null;
-    try {
-      return await userApi.changePassword(credentials);
-    } catch (err) {
-      error.value = err.message || "Failed to change password";
-      throw err;
-    } finally {
-      isLoading.value = false;
-    }
+  function loadAddresses() {
+    return userApi.fetchAddresses().then((data) => {
+      setAddresses(data);
+      return data;
+    });
   }
 
-  async function loadAddresses() {
-    isLoading.value = true;
-    error.value = null;
-    try {
-      addresses.value = await userApi.fetchAddresses();
-    } catch (err) {
-      error.value = err.message || "Failed to load addresses";
-    } finally {
-      isLoading.value = false;
-    }
+  function addAddress(addressData) {
+    return userApi.addAddress(addressData).then((address) => {
+      addAddressToStore(address);
+      return address;
+    });
   }
 
-  async function addAddress(addressData) {
-    isLoading.value = true;
-    error.value = null;
-    try {
-      const newAddress = await userApi.addAddress(addressData);
-      addresses.value.push(newAddress);
-    } catch (err) {
-      error.value = err.message || "Failed to add address";
-      throw err;
-    } finally {
-      isLoading.value = false;
-    }
+  function updateAddress(id, addressData) {
+    return userApi.updateAddress(id, addressData).then((updatedAddress) => {
+      updateAddressInStore(updatedAddress);
+      return updatedAddress;
+    });
   }
 
-  async function removeAddress(id) {
-    isLoading.value = true;
-    error.value = null;
-    try {
-      await userApi.deleteAddress(id);
-      addresses.value = addresses.value.filter((addr) => addr.id !== id);
-    } catch (err) {
-      error.value = err.message || "Failed to remove address";
-      throw err;
-    } finally {
-      isLoading.value = false;
-    }
+  function setDefaultAddress(id) {
+    return userApi.setDefaultAddress(id).then(() => {
+      return loadAddresses();
+    });
   }
 
-  async function loadOrders() {
-    isLoading.value = true;
-    error.value = null;
-    try {
-      orders.value = await userApi.fetchOrders();
-    } catch (err) {
-      error.value = err.message || "Failed to load orders";
-    } finally {
-      isLoading.value = false;
-    }
+  function removeAddress(id) {
+    return userApi.deleteAddress(id).then(() => {
+      removeAddressFromStore(id);
+      return id;
+    });
   }
 
   return {
     profile,
-    userInitial,
     addresses,
-    orders,
-    isLoading,
-    error,
-    loadProfile,
-    updateProfile,
-    updatePassword,
+    userInitial,
+    setProfile,
+    clearProfile,
+    setAddresses,
+    addAddressToStore,
+    updateAddressInStore,
+    removeAddressFromStore,
     loadAddresses,
     addAddress,
+    updateAddress,
+    setDefaultAddress,
     removeAddress,
-    loadOrders,
   };
 });

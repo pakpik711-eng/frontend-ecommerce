@@ -38,20 +38,21 @@
 </template>
 
 <script setup>
-import Header from "@/components/common/Header.vue";
 import CheckoutAddress from "@/components/checkout/CheckoutAddress.vue";
 import CheckoutItems from "@/components/checkout/CheckoutItems.vue";
 import CheckoutSummary from "@/components/checkout/CheckoutSummary.vue";
 import PaymentMethod from "@/components/checkout/PaymentMethod.vue";
 import AddressModal from "@/components/checkout/AddressModal.vue";
 import { useRouter } from "vue-router";
-import { useCheckoutStore } from "@/stores/checkoutStore";
+// import { useCheckoutStore } from "@/stores/checkoutStore";
+import { useCartStore } from "@/stores/cartStore";
 import { useUserStore } from "@/stores/userStore";
 import { onMounted, ref } from "vue";
 
 const router = useRouter();
-const checkoutStore = useCheckoutStore();
+// const checkoutStore = useCheckoutStore();
 const userStore = useUserStore();
+const cartStore = useCartStore();
 const selectedAddress = ref(null);
 const paymentMethod = ref("COD");
 const showAddressModal = ref(false);

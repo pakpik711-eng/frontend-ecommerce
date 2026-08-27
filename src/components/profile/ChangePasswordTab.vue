@@ -1,6 +1,7 @@
 <template>
   <div class="tab-content">
     <h3>Change Password</h3>
+
     <form @submit.prevent="handleChangePassword">
       <PasswordInput
         id="currentPassword"
@@ -41,13 +42,13 @@
       </span>
 
       <BaseButton
-        :text="userStore.isLoading ? 'Updating...' : 'Update Password'"
+        :text="isLoading ? 'Updating...' : 'Update Password'"
         class="save-btn"
         :disabled="
           !currentPassword ||
           !isValid ||
           newPassword !== confirmNewPassword ||
-          userStore.isLoading
+          isLoading
         "
       />
     </form>
@@ -56,38 +57,49 @@
 
 <script setup>
 import { ref } from "vue";
-import { useUserStore } from "@/stores/userStore";
+
+import { userApi } from "@/services/userApi";
+
 import { usePasswordValidation } from "@/composables/usePasswordValidation";
+
 import BaseButton from "@/components/common/BaseButton.vue";
 import PasswordInput from "@/components/auth/PasswordInput.vue";
 import PasswordRules from "@/components/auth/PasswordRules.vue";
 
-const userStore = useUserStore();
-
 const currentPassword = ref("");
 const newPassword = ref("");
 const confirmNewPassword = ref("");
+
 const apiError = ref("");
 const successMsg = ref("");
 
+const isLoading = ref(false);
+
 const { rules, isValid } = usePasswordValidation(newPassword);
 
-const handleChangePassword = async () => {
+const handleChangePassword = () => {
   apiError.value = "";
   successMsg.value = "";
+  isLoading.value = true;
 
-  try {
-    const res = await userStore.updatePassword({
+  userApi
+    .changePassword({
       currentPassword: currentPassword.value,
       newPassword: newPassword.value,
+    })
+    .then((response) => {
+      successMsg.value = response.message || "Password updated successfully!";
+
+      currentPassword.value = "";
+      newPassword.value = "";
+      confirmNewPassword.value = "";
+    })
+    .catch((error) => {
+      apiError.value = error.message || "Failed to update password";
+    })
+    .finally(() => {
+      isLoading.value = false;
     });
-    successMsg.value = res.message || "Password updated successfully!";
-    currentPassword.value = "";
-    newPassword.value = "";
-    confirmNewPassword.value = "";
-  } catch (err) {
-    apiError.value = err || "Failed to update password";
-  }
 };
 </script>
 
@@ -116,10 +128,5 @@ const handleChangePassword = async () => {
 
 .save-btn {
   margin-top: 0.5rem;
-}
-
-.save-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 </style>
