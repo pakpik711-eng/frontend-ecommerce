@@ -61,17 +61,17 @@ const tabs = [
     id: "addresses",
     label: "Saved Addresses",
   },
-  {
-    id: "password",
-    label: "Change Password",
-  },
+  // {
+  //   id: "password",
+  //   label: "Change Password",
+  // },
 ];
 
 const tabComponents = {
   details: UserDetailsTab,
   orders: OrderHistoryTab,
   addresses: ManageAddressesTab,
-  password: ChangePasswordTab,
+  // password: ChangePasswordTab,
 };
 
 const currentTab = ref(

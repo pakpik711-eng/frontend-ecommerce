@@ -25,6 +25,12 @@
           <h1>{{ product.name }}</h1>
 
           <p class="description">{{ product.description }}</p>
+          <p class="description">{{ product.description }}</p>
+
+          <ul v-if="product.usp?.length" class="usp-list">
+            <li v-for="point in product.usp" :key="point">{{ point }}</li>
+          </ul>
+
           <div
             v-for="(values, attributeName) in product.attributes"
             :key="attributeName"
@@ -229,7 +235,6 @@ const mainImage = computed(
     selectedVariant.value?.images?.[0],
 );
 
-
 const addedToCart = computed(() => {
   if (!product.value || !selectedVariant.value || !selectedMerchant.value) {
     return false;
@@ -299,7 +304,6 @@ function loadProduct() {
   loading.value = true;
   pageError.value = null;
 
-
   const request = variantId
     ? getProductDetailsForCart(productId, variantId)
     : getProductDetail(productId);
@@ -312,6 +316,7 @@ function loadProduct() {
         description: response.description,
         thumbnail: response.thumbnail,
         attributes: response.attributes,
+        usp: response.usp,
       };
 
       selectedVariant.value = response.selectedVariant;
@@ -426,7 +431,6 @@ function formatReviewDate(date) {
   });
 }
 
-
 function requireAuthOrRedirect() {
   if (authStore.isAuthenticated) {
     return true;
@@ -479,6 +483,7 @@ function buyNow() {
       quantity: quantity.value,
     })
     .then((cartItemId) => {
+      cartStore.authorizeCheckoutNavigation();
       router.push({ name: "Checkout", query: { buyNow: cartItemId } });
     })
     .catch((err) => {
@@ -500,7 +505,6 @@ onMounted(() => {
 
   loadProduct();
 });
-
 
 watch(
   () => [route.params.productId, route.params.variantId],
@@ -974,5 +978,19 @@ watch(
 
 .action-error {
   max-width: 1200px;
+}
+
+.usp-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  color: var(--color-text-main);
+}
+
+.usp-list li {
+  line-height: 1.4;
 }
 </style>

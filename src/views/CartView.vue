@@ -8,6 +8,7 @@
       <p v-if="cartStore.error" class="error">{{ cartStore.error }}</p>
       <div class="cart-layout">
         <div class="cart-items">
+          <p v-if="cartStore.actionError">{{cartStore.actionError}}</p>
           <CartItem
             v-for="item in cartStore.cartItems"
             :key="item.cartItemId"

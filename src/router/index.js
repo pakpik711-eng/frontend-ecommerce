@@ -11,6 +11,7 @@ import CheckoutView from "@/views/CheckoutView.vue";
 import OrderSuccessView from "@/views/OrderSuccessView.vue";
 import ReviewView from "@/views/ReviewView.vue";
 import ProductDetailView from "@/views/ProductDetailView.vue";
+import { useCartStore } from "@/stores/cartStore";
 
 const routes = [
   { path: "/", name: "Home", component: HomeView },
@@ -37,7 +38,7 @@ const routes = [
     name: "ProductDetail",
     component: ProductDetailView,
   },
- 
+
   {
     path: "/product/details/:productId/:variantId",
     name: "ProductDetailWithVariant",
@@ -54,6 +55,11 @@ const routes = [
     name: "Checkout",
     component: CheckoutView,
     meta: { requiresAuth: true },
+    beforeEnter: () => {
+      const cartStore = useCartStore();
+
+      return cartStore.consumeCheckoutAuthorization() ? true : { name: "Cart" };
+    },
   },
   {
     path: "/order-success",

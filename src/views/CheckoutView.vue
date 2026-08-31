@@ -58,7 +58,6 @@ const showAddressModal = ref(false);
 const placingOrder = ref(false);
 const error = ref(null);
 
-
 const buyNowItemId = computed(() => route.query.buyNow || null);
 
 const checkoutItems = computed(() => {
@@ -72,11 +71,9 @@ const checkoutItems = computed(() => {
 
 const checkoutTotal = computed(() => {
   if (buyNowItemId.value) {
-    
     return checkoutItems.value[0]?.lineTotal || 0;
   }
 
- 
   return cartStore.totalPrice || 0;
 });
 
