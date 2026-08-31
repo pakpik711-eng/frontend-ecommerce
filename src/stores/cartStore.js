@@ -18,6 +18,17 @@ export const useCartStore = defineStore("cart", () => {
   const totalPrice = ref(0);
   const cartCount = ref(0);
 
+  const checkoutAuthorized = ref(false);
+
+  function authorizeCheckoutNavigation() {
+    checkoutAuthorized.value = true;
+  }
+
+  function consumeCheckoutAuthorization() {
+    const authorized = checkoutAuthorized.value;
+    checkoutAuthorized.value = false;
+    return authorized;
+  }
 
   function applyCartSnapshot(cartResponse) {
     cartItems.value = cartResponse.items || [];
@@ -28,7 +39,6 @@ export const useCartStore = defineStore("cart", () => {
   function fetchCartCount() {
     return getCartCount()
       .then((response) => {
-       
         cartCount.value = response.distinctItemCount;
       })
       .catch((err) => {
@@ -65,7 +75,7 @@ export const useCartStore = defineStore("cart", () => {
       })
       .catch((err) => {
         actionError.value = err;
-        console.error("Failed to add cart item:", err);
+        // console.error("Failed to add cart item:", err);
         throw err;
       })
       .finally(() => {
@@ -73,14 +83,12 @@ export const useCartStore = defineStore("cart", () => {
       });
   }
 
- 
   function buyNow(item) {
     loading.value = true;
     actionError.value = null;
 
     return buyNowApi(item)
       .then((response) => {
-       
         if (response.items) {
           applyCartSnapshot(response);
         }
@@ -143,7 +151,6 @@ export const useCartStore = defineStore("cart", () => {
 
     return updateCartItemQuantity(cartItemId, quantity)
       .then((response) => {
-       
         const index = cartItems.value.findIndex(
           (item) => item.cartItemId === cartItemId,
         );
@@ -167,7 +174,6 @@ export const useCartStore = defineStore("cart", () => {
 
     return removeItemCartItem(cartItemId)
       .then((response) => {
-      
         applyCartSnapshot(response);
       })
       .catch((err) => {
@@ -199,7 +205,10 @@ export const useCartStore = defineStore("cart", () => {
     removeItem,
     addItem,
     buyNow,
+    authorizeCheckoutNavigation,
+    consumeCheckoutAuthorization,
 
     clearCartCount,
   };
 });
+

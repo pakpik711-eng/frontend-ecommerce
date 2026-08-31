@@ -17,6 +17,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { validateCart } from "@/services/cartApi";
+import { useCartStore } from "@/stores/cartStore";
 
 defineProps({
   total: {
@@ -28,6 +29,7 @@ defineProps({
 const router = useRouter();
 const loading = ref(false);
 const actionError = ref(null);
+const cartStore = useCartStore();
 
 function handleBuyNow() {
   loading.value = true;
@@ -35,7 +37,7 @@ function handleBuyNow() {
 
   return validateCart()
     .then(() => {
-     
+      cartStore.authorizeCheckoutNavigation();
       router.push("/checkout");
     })
     .catch((err) => {
